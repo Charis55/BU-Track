@@ -4,7 +4,9 @@ import {
   signInWithPopup, 
   signOut,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { auth, googleProvider, db } from "../firebase";
@@ -26,6 +28,7 @@ export const AuthProvider = ({ children }) => {
           const userData = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
+            emailVerified: firebaseUser.emailVerified,
             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
             photoURL: firebaseUser.photoURL,
             profile: docSnap.exists() ? docSnap.data() : null
@@ -34,7 +37,7 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         }, (error) => {
           console.error("Profile sync error:", error);
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email });
+          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, emailVerified: firebaseUser.emailVerified });
           setLoading(false);
         });
       } else {
@@ -64,8 +67,18 @@ export const AuthProvider = ({ children }) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signUpWithEmail = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signUpWithEmail = async (email, password) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(result.user);
+    return result;
+  };
+
+  const resendVerification = () => {
+    if (auth.currentUser) return sendEmailVerification(auth.currentUser);
+  };
+
+  const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
   };
 
   const logout = () => signOut(auth);
@@ -76,6 +89,8 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogle,
     loginWithEmail,
     signUpWithEmail,
+    resendVerification,
+    resetPassword,
     logout
   };
 

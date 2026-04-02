@@ -5,7 +5,8 @@ import {
   Utensils, 
   Dumbbell, 
   Trophy, 
-  Map as MapIcon 
+  Map as MapIcon,
+  User
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -31,7 +32,10 @@ const Navbar = () => {
         <MapIcon size={20} />
         <span>Guide</span>
       </NavLink>
-
+      <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <User size={20} />
+        <span>Profile</span>
+      </NavLink>
     </nav>
   );
 };

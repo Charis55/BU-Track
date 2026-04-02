@@ -65,7 +65,62 @@ export const updateTodayMetric = async (uid, metrics) => {
 };
 
 /**
- * Log a meal and update the daily calorie count.
+ * BIOMETRIC & POINT SYSTEM (V6-12)
+ */
+
+export const PAL_MULTIPLIERS = {
+  "Sedentary": 1.2,
+  "Lightly Active": 1.375,
+  "Moderately Active": 1.55,
+  "Very Active": 1.725
+};
+
+export const calculateUserBiometrics = (userProfile) => {
+  const { weight, height, age, gender, goal, activityLevel } = userProfile;
+  if (!weight || !height || !age) return { daily: 2000, weekly: 14000 };
+
+  // Mifflin-St Jeor Equation
+  let bmr = (10 * parseFloat(weight)) + (6.25 * parseFloat(height)) - (5 * parseInt(age));
+  bmr = (gender === 'Male') ? bmr + 5 : bmr - 161;
+
+  // TDEE calculation
+  const multiplier = PAL_MULTIPLIERS[activityLevel] || 1.2;
+  const tdee = bmr * multiplier;
+
+  // Goal Adjustment
+  let dailyTarget = tdee;
+  if (goal === 'Lose Weight') dailyTarget -= 500;
+  else if (goal === 'Build Muscle') dailyTarget += 400;
+
+  return {
+    daily: Math.round(dailyTarget),
+    weekly: Math.round(dailyTarget * 7)
+  };
+};
+
+export const addPoints = async (uid, amount) => {
+  const userRef = doc(db, USER_COLLECTION, uid);
+  const snap = await getDoc(userRef);
+  if (snap.exists()) {
+    const currentPoints = snap.data().points || 0;
+    await updateDoc(userRef, { 
+      points: currentPoints + amount,
+      lastModified: serverTimestamp() 
+    });
+  }
+};
+
+export const recordDailyLogin = async (uid) => {
+  const today = getTodayStr();
+  const userRef = doc(db, USER_COLLECTION, uid);
+  await updateDoc(userRef, {
+    lastCheckedIn: today,
+    [`checkInHistory.${today}`]: true
+  });
+};
+
+/**
+ * Log a meal and update the daily calorie count + Individual points.
  */
 export const logUserMeal = async (uid, meal) => {
   const mealRef = collection(db, "users", uid, "meals");
@@ -78,10 +133,13 @@ export const logUserMeal = async (uid, meal) => {
   const currentLog = await getDailyLog(uid);
   const newTotal = (currentLog.caloriesConsumed || 0) + (meal.calories || 0);
   await updateTodayMetric(uid, { caloriesConsumed: newTotal });
+
+  // Award Points (+10)
+  await addPoints(uid, 10);
 };
 
 /**
- * Log a workout and update the daily burned calories.
+ * Log a workout and update the daily burned calories + Individual points.
  */
 export const logUserWorkout = async (uid, workout) => {
   const workoutRef = collection(db, "users", uid, "workouts");
@@ -94,26 +152,179 @@ export const logUserWorkout = async (uid, workout) => {
   const currentLog = await getDailyLog(uid);
   const newTotal = (currentLog.caloriesBurned || 0) + (workout.calories || 0);
   await updateTodayMetric(uid, { caloriesBurned: newTotal });
+
+  // Award Points (+25)
+  await addPoints(uid, 25);
 };
 
 /**
- * Fetch all users for the leaderboard.
+ * CHALLENGE SYSTEM (V5) - Points removed to prevent exploitation
+ */
+const CHALLENGE_POOL = [
+  { id: 'steps_10k', title: 'Babcock 10k Sprint', desc: 'Complete 10,000 steps before the 10:00 AM lecture slot.' },
+  { id: 'water_3l', title: 'Hydration Master', desc: 'Log at least 3 Liters of water today.' },
+  { id: 'stadium_run', title: 'Amphitheatre Lap', desc: 'Log a running workout at the school stadium.' },
+  { id: 'laz_otti_focus', title: 'Library Focus', desc: 'Log a 2-hour productive session at Laz Otti Library.' },
+  { id: 'fruit_day', title: 'Freshman Fuel', desc: 'Include at least 2 fruit items in your logged meals.' },
+  { id: 'no_soda', title: 'Soda-Free Campus', desc: 'Do not log any high-sugar beverages today.' },
+  { id: 'morning_cardio', title: 'Sunrise Sweat', desc: 'Log a cardio session before 8:00 AM.' },
+  { id: 'high_protein', title: 'Muscle Building', desc: 'Log a meal with over 40g of protein.' },
+  { id: 'veggie_lover', title: 'Garden Enthusiast', desc: 'Log a meal consisting primarily of vegetables.' },
+  { id: 'winslow_walk', title: 'Winslow Trail', desc: 'Walk from Winslow Hall to the main gate and back.' },
+  { id: 'early_bird', title: 'Early Riser', desc: 'Log your first meal of the day before 7:30 AM.' },
+  { id: 'meditation', title: 'Mindful Student', desc: 'Log a 15-minute mindfulness or meditation session.' },
+  { id: 'sleep_8h', title: 'Restored Scholar', desc: 'Log 8 hours of sleep for the previous night.' },
+  { id: 'campus_trek', title: 'Campus Explorer', desc: 'Visit 3 different landmarks and log your steps.' },
+  { id: 'plank_3m', title: 'Core Crusher', desc: 'Complete and log a 3-minute total plank time.' },
+  { id: 'pushup_50', title: 'Strength Base', desc: 'Complete 50 pushups throughout the day.' },
+  { id: 'stair_climb', title: 'Vertical Gain', desc: 'Climb 5 flights of stairs in any hall of residence.' },
+  { id: 'fast_walk', title: 'Babcock Power Walk', desc: 'Maintain a brisk walking pace for 30 continuous minutes.' },
+  { id: 'no_junk', title: 'Clean Eater', desc: 'Eliminate processed snacks from your meal logs today.' },
+  { id: 'gym_session', title: 'Weight Room King', desc: 'Complete a 45-minute weightlifting session.' },
+  { id: 'cycling_10k', title: 'Babcock Cyclist', desc: 'Log 10km of cycling around the campus loops.' },
+  { id: 'swim_laps', title: 'Pool Penguin', desc: 'Complete 10 laps in the school swimming pool.' },
+  { id: 'yoga_flow', title: 'Flexible Mind', desc: 'Log a 20-minute yoga or stretching session.' },
+  { id: 'heart_rate', title: 'Cardio King', desc: 'Maintain a heart rate above 130bpm for 20 minutes.' },
+  { id: 'active_hour', title: 'Golden Hour', desc: 'Stay active for at least 60 non-consecutive minutes.' },
+  { id: 'peer_workout', title: 'Squad Goals', desc: 'Log a workout session completed with a friend.' },
+  { id: 'meal_prep', title: 'Prep Master', desc: 'Log 3 balanced meals for the entire day.' },
+  { id: 'green_tea', title: 'Tea Taker', desc: 'Log a cup of green tea as part of your hydration.' },
+  { id: 'squat_100', title: 'Leg Day Lead', desc: 'Complete 100 bodyweight squats today.' },
+  { id: 'stretch_10m', title: 'Mobility Pro', desc: 'Log a 10-minute full body stretch before bed.' }
+];
+
+export const getDailyChallenges = () => {
+  const now = new Date();
+  const day = now.getDay(); // 0-6 (Sun-Sat)
+  const hour = now.getHours();
+  const dateStr = getTodayStr();
+
+  // Saturday Rule: No challenges
+  if (day === 6) return { type: 'REST_DAY', challenges: [] };
+
+  // Friday Rule: Morning only (closes at 12 PM)
+  if (day === 5 && hour >= 12) return { type: 'FRIDAY_CLOSED', challenges: [] };
+
+  // Date-seeded random selection (pick 2)
+  const seed = new Date(dateStr).getTime();
+  const index1 = Math.floor((seed % 1234567) % CHALLENGE_POOL.length);
+  const index2 = (index1 + 7) % CHALLENGE_POOL.length;
+
+  return {
+    type: 'ACTIVE',
+    challenges: [CHALLENGE_POOL[index1], CHALLENGE_POOL[index2]]
+  };
+};
+
+export const enrollInChallenge = async (challengeId, uid) => {
+  const today = getTodayStr();
+  const enrollId = `${challengeId}_${today}`;
+  const enrollRef = doc(db, "challenge_enrollments", enrollId);
+  
+  const snap = await getDoc(enrollRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    if (data.participants.includes(uid)) return; // Already enrolled
+    await updateDoc(enrollRef, {
+      participants: [...data.participants, uid],
+      count: (data.count || 0) + 1
+    });
+  } else {
+    await setDoc(enrollRef, {
+      id: challengeId,
+      date: today,
+      participants: [uid],
+      count: 1
+    });
+  }
+};
+
+export const getChallengeParticipants = async (challengeId) => {
+  const today = getTodayStr();
+  const enrollId = `${challengeId}_${today}`;
+  const enrollRef = doc(db, "challenge_enrollments", enrollId);
+  const snap = await getDoc(enrollRef);
+  
+  if (!snap.exists()) return [];
+  
+  const pUids = snap.data().participants.slice(0, 5); // Get first 5 for UI
+  const users = await Promise.all(pUids.map(async (pUid) => {
+    const uSnap = await getDoc(doc(db, USER_COLLECTION, pUid));
+    return uSnap.exists() ? uSnap.data().username : 'anonymous';
+  }));
+  
+  return users;
+};
+
+export const getEnrollmentCount = async (challengeId) => {
+  const today = getTodayStr();
+  const enrollId = `${challengeId}_${today}`;
+  const enrollRef = doc(db, "challenge_enrollments", enrollId);
+  const snap = await getDoc(enrollRef);
+  return snap.exists() ? snap.data().count : 0;
+};
+
+/**
+ * LEADERBOARD LOGIC (v12)
  */
 export const getLeaderboardData = async () => {
-  // Query for top students based on steps or points.
-  // Using daily_logs as an example of active tracking.
-  const today = getTodayStr();
-  const q = query(
-    collection(db, DAILY_LOG_COLLECTION),
-    where("date", "==", today),
-    orderBy("caloriesConsumed", "desc"), // Simplified for demo; would usually be points
-    limit(10)
-  );
-
-  const querySnapshot = await getDocs(q);
+  const q = query(collection(db, USER_COLLECTION), orderBy("points", "desc"), limit(20));
+  const snap = await getDocs(q);
   const results = [];
-  querySnapshot.forEach((doc) => {
-    results.push(doc.data());
-  });
+  snap.forEach(doc => results.push({ uid: doc.id, ...doc.data() }));
   return results;
+};
+
+export const getCourseLeaderboardData = async () => {
+  const q = query(collection(db, USER_COLLECTION));
+  const snap = await getDocs(q);
+  const courseTotals = {};
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const course = data.courseOfStudy || 'Unknown';
+    const points = data.points || 0;
+
+    if (!courseTotals[course]) {
+      courseTotals[course] = { name: course, totalPoints: 0, studentCount: 0 };
+    }
+    courseTotals[course].totalPoints += points;
+    courseTotals[course].studentCount += 1;
+  });
+
+  return Object.values(courseTotals).sort((a, b) => b.totalPoints - a.totalPoints);
+};
+
+export const checkWeeklyBonus = async (uid) => {
+  const userRef = doc(db, USER_COLLECTION, uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) return null;
+  const userData = userSnap.data();
+
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 is Sunday
+  if (dayOfWeek !== 0) return null; // Only check on Sundays
+
+  const lastCheck = userData.lastWeeklyConsistencyCheck;
+  const todayStr = getTodayStr();
+  if (lastCheck === todayStr) return null; // Already checked today
+
+  // Check last 7 days checkInHistory
+  let consecutiveDays = 0;
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dStr = d.toISOString().split('T')[0];
+    if (userData.checkInHistory && userData.checkInHistory[dStr]) {
+      consecutiveDays++;
+    }
+  }
+
+  if (consecutiveDays >= 7) {
+    await addPoints(uid, 100);
+    await updateDoc(userRef, { lastWeeklyConsistencyCheck: todayStr });
+    return true; // Bonus awarded
+  }
+
+  return false;
 };

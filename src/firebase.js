@@ -21,6 +21,8 @@ const app = initializeApp(firebaseConfig);
 // Initialize Services
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+// Request Google Fit scope for fitness tracking
+googleProvider.addScope('https://www.googleapis.com/auth/fitness.activity.read');
 
 // Initialize Firestore with Persistent Cache (Fixes "stuck" onboarding & offline errors)
 export const db = initializeFirestore(app, {

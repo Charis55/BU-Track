@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Flame, Droplet, TrendingUp, Plus, ChevronRight,
-  Utensils, Dumbbell, Zap, Trophy, Activity
+  Utensils, Dumbbell, Zap, Trophy, Activity, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getDailyLog } from '../../utils/db';
+import { getDailyLog, calculateUserBiometrics, recordDailyLogin, checkWeeklyBonus } from '../../utils/db';
 import { Link } from 'react-router-dom';
+import AcademyTutorial from '../../components/AcademyTutorial';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,31 +62,67 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const calGoal = 2200;
-  const burnGoal = 500;
+  const [showAcademy, setShowAcademy] = useState(false);
+  const [biometrics, setBiometrics] = useState({ daily: 2000, weekly: 14000 });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const initDashboard = async () => {
       if (user?.uid) {
         setLoading(true);
         try {
+          await recordDailyLogin(user.uid);
+          const bonusAwarded = await checkWeeklyBonus(user.uid);
+          if (bonusAwarded) console.log("Weekly bonus awarded!");
+
           const log = await getDailyLog(user.uid);
           setStats(log);
+
+          if (user.profile) {
+            const bio = calculateUserBiometrics(user.profile);
+            setBiometrics(bio);
+            if (!user.profile.tutorialCompleted) setShowAcademy(true);
+          }
         } catch (err) {
-          console.error("Error fetching stats:", err);
+          console.error("Dashboard init error:", err);
         } finally {
           setLoading(false);
         }
       }
     };
-    fetchStats();
-  }, [user?.uid]);
+    initDashboard();
+  }, [user?.uid, user?.profile]);
 
+  const calGoal = biometrics.daily;
+  const burnGoal = Math.round(calGoal * 0.25);
   const caloriesIn = stats?.caloriesConsumed || 0;
   const caloriesOut = stats?.caloriesBurned || 0;
   const netCals = caloriesIn - caloriesOut;
   const water = stats?.water || 0;
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const getStreakDots = () => {
+    return weekDays.map((_, i) => {
+      const d = new Date();
+      const diff = d.getDay() - i;
+      const targetDate = new Date();
+      targetDate.setDate(d.getDate() - diff);
+      const dateStr = targetDate.toISOString().split('T')[0];
+      const isLogged = user?.profile?.checkInHistory?.[dateStr];
+      const isToday = i === d.getDay();
+
+      return (
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+          <div style={{ 
+            width: '12px', height: '12px', borderRadius: '50%',
+            background: isLogged ? 'var(--accent-emerald)' : 'rgba(255,255,255,0.1)',
+            boxShadow: isLogged ? '0 0 8px var(--accent-emerald)' : 'none',
+            border: isToday ? '1px solid var(--accent-emerald)' : 'none'
+          }} />
+          <span style={{ fontSize: '0.65rem', color: isToday ? 'var(--accent-emerald)' : 'var(--text-muted)', fontWeight: isToday ? 700 : 400 }}>{weekDays[i]}</span>
+        </div>
+      );
+    });
+  };
 
   if (loading) return (
     <div className="dashboard-container container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -94,40 +131,66 @@ const Dashboard = () => {
         transition={{ duration: 1.5, repeat: Infinity }}
         style={{ color: 'var(--accent-emerald)', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '0.1em' }}
       >
-        LOADING YOUR STATS...
+        SYNCING ACADEMY DATA...
       </motion.div>
     </div>
   );
 
   return (
     <div className="dashboard-container container">
-      {/* Hero Header */}
+      {showAcademy && <AcademyTutorial user={user} onComplete={() => setShowAcademy(false)} />}
+      
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="dashboard-header animate-fade-in"
       >
-        <div className="user-greeting">
-          <p className="text-secondary" style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-emerald)', marginBottom: '0.25rem' }}>
-            Good day 👋
-          </p>
-          <h1>Hello, {user?.displayName?.split(' ')[0] || 'Student'}!</h1>
-          <p className="text-secondary" style={{ marginTop: '0.25rem' }}>
-            Ready to smash your <span className="glow-emerald">{user?.profile?.goal || 'Fitness'}</span> goals today?
-          </p>
+        <div className="user-greeting" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+          <Link to="/profile" style={{ flexShrink: 0 }}>
+            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(16,185,129,0.3)' }}>
+              <span style={{ fontSize: '1.5rem', color: '#fff', fontWeight: 'bold' }}>{user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</span>
+            </div>
+          </Link>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Trophy size={14} color="var(--accent-gold)" />
+              <p className="text-secondary" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--accent-gold)', margin: 0 }}>
+                {user?.profile?.points || 0} Semester Points
+              </p>
+            </div>
+            <h1 style={{ margin: '0.2rem 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '1.5rem' }}>{user?.displayName?.split(' ')[0] || 'Student'}</h1>
+            <p className="text-secondary" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+              {user?.profile?.courseOfStudy || 'General Student'}
+            </p>
+          </div>
         </div>
-        <div className="header-actions">
-          <Link to="/meals" className="action-btn primary">
+        <div className="header-actions" style={{ width: '100%', display: 'flex', gap: '0.75rem' }}>
+          <Link to="/meals" className="action-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
             <Utensils size={16} /> Log Meal
           </Link>
-          <Link to="/workouts" className="action-btn primary" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 20px var(--gold-glow)' }}>
+          <Link to="/workouts" className="action-btn primary" style={{ flex: 1, justifyContent: 'center', background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 20px rgba(245, 158, 11, 0.2)' }}>
             <Dumbbell size={16} /> Workout
           </Link>
         </div>
       </motion.header>
 
-      {/* Stats Grid with radial rings */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="glass-card" 
+        style={{ padding: '1rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Sparkles size={16} color="var(--accent-emerald)" />
+          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>7-Day Consistency</span>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {getStreakDots()}
+        </div>
+      </motion.div>
+
       <motion.section
         className="stats-grid"
         variants={containerVariants}
@@ -135,27 +198,25 @@ const Dashboard = () => {
         animate="visible"
       >
         <StatCard
-          icon={Flame} label="Calories In" value={caloriesIn} unit="kcal"
+          icon={Flame} label="Daily Intake" value={caloriesIn} unit="kcal"
           colorHex="#10b981" max={calGoal}
         />
         <StatCard
-          icon={Zap} label="Calories Burned" value={caloriesOut} unit="kcal"
+          icon={Zap} label="Burn Target" value={caloriesOut} unit="kcal"
           colorHex="#f59e0b" max={burnGoal}
         />
         <StatCard
-          icon={Droplet} label="Water" value={water} unit="L"
+          icon={Droplet} label="Hydration" value={water} unit="L"
           colorHex="#3b82f6" max={3}
         />
         <StatCard
-          icon={Activity} label="Net Calories" value={Math.abs(netCals)} unit={netCals >= 0 ? 'surplus' : 'deficit'}
+          icon={Activity} label="Net Status" value={Math.abs(netCals)} unit={netCals >= 0 ? 'surplus' : 'deficit'}
           colorHex="#8b5cf6" max={calGoal}
         />
       </motion.section>
 
-      {/* Main grid */}
       <div className="dashboard-main-grid">
         <div className="main-left">
-          {/* Calorie Progress Banner */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -163,8 +224,8 @@ const Dashboard = () => {
             className="glass-card chart-container"
           >
             <div className="chart-header">
-              <h3>Today's Calorie Balance</h3>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
+              <h3>Scientific Target Focus</h3>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user?.profile?.activityLevel || 'Standard'} Multiplier</span>
             </div>
 
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', padding: '1rem 0' }}>
@@ -172,7 +233,7 @@ const Dashboard = () => {
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Consumed</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Intake Goal</span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>{caloriesIn} / {calGoal} kcal</span>
                   </div>
                   <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -186,7 +247,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Burned</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Workout Target</span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)' }}>{caloriesOut} / {burnGoal} kcal</span>
                   </div>
                   <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -202,7 +263,6 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          {/* Quick action cards */}
           <div className="quick-actions-grid">
             <Link to="/meals" style={{ textDecoration: 'none' }}>
               <motion.div whileHover={{ y: -5 }} className="glass-card action-card">
@@ -211,7 +271,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h4>Log Meal</h4>
-                  <p className="text-muted">Track nutrition</p>
+                  <p className="text-muted">+10 Points</p>
                 </div>
                 <ChevronRight size={18} color="var(--text-muted)" />
               </motion.div>
@@ -223,7 +283,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h4>Workout</h4>
-                  <p className="text-muted">Crush your session</p>
+                  <p className="text-muted">+25 Points</p>
                 </div>
                 <ChevronRight size={18} color="var(--text-muted)" />
               </motion.div>
@@ -232,7 +292,6 @@ const Dashboard = () => {
         </div>
 
         <div className="main-right">
-          {/* Community / Leaderboard preview */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -242,17 +301,17 @@ const Dashboard = () => {
             <div className="chart-header">
               <h3><Trophy size={16} style={{ display: 'inline', marginRight: '0.5rem', color: 'var(--accent-gold)' }} />Campus Rankings</h3>
               <Link to="/leaderboard" style={{ textDecoration: 'none' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>View All →</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>View Cup →</span>
               </Link>
             </div>
             <div className="leader-list">
               <div className="leader-item" style={{ background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.2)' }}>
                 <span className="leader-rank gold">🥇</span>
-                <span className="leader-name">Top Spot</span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Log meals to compete!</span>
+                <span className="leader-name">Semester Cup</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Top Students & Courses</span>
               </div>
               <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.6' }}>
-                Log your first meal or workout to appear on the <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>leaderboard</span>.
+                Build your <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>7-Day Streak</span> to climb the departmental race.
               </div>
               <Link to="/leaderboard" style={{ textDecoration: 'none' }}>
                 <motion.div
@@ -264,13 +323,19 @@ const Dashboard = () => {
                     color: 'var(--accent-emerald)', fontWeight: 700, fontSize: '0.9rem'
                   }}
                 >
-                  <Trophy size={16} /> See Leaderboard
+                  <Trophy size={16} /> Course Leaderboard
                 </motion.div>
               </Link>
             </div>
           </motion.div>
         </div>
       </div>
+      
+      <footer style={{ marginTop: '4rem', paddingBottom: '3rem', textAlign: 'center', opacity: 0.4 }}>
+        <p style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--accent-emerald)' }}>
+          CharisCorp
+        </p>
+      </footer>
     </div>
   );
 };
