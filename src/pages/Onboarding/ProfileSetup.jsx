@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Target, Activity, Ruler, Weight, User } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Target, Activity, Ruler, Weight, User, Scale, Trophy } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';

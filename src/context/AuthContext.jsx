@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
-  onAuthStateChanged, 
-  signInWithPopup, 
+  onAuthStateChanged,
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,7 +9,7 @@ import {
   deleteUser
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, deleteDoc } from "firebase/firestore";
-import { auth, googleProvider, db } from "../firebase";
+import { auth, db } from "../firebase";
 
 const AuthContext = createContext();
 
@@ -24,7 +23,13 @@ export const AuthProvider = ({ children }) => {
     let unsubscribeProfile = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        // Listen for real-time profile updates
+        // Initial user state before profile syncs
+        setUser({ uid: firebaseUser.uid, email: firebaseUser.email, emailVerified: firebaseUser.emailVerified });
+        
+        // Ensure UI renders immediately even if profile takes a moment to sync
+        setLoading(false);
+
+        // Listen for real-time profile updates in the background
         unsubscribeProfile = onSnapshot(doc(db, "users", firebaseUser.uid), (docSnap) => {
           const userData = {
             uid: firebaseUser.uid,
@@ -35,11 +40,9 @@ export const AuthProvider = ({ children }) => {
             profile: docSnap.exists() ? docSnap.data() : null
           };
           setUser(userData);
-          setLoading(false);
         }, (error) => {
           console.error("Profile sync error:", error);
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, emailVerified: firebaseUser.emailVerified });
-          setLoading(false);
+          // Already called setLoading(false) above
         });
       } else {
         if (unsubscribeProfile) unsubscribeProfile();
@@ -53,16 +56,6 @@ export const AuthProvider = ({ children }) => {
       if (unsubscribeProfile) unsubscribeProfile();
     };
   }, []);
-
-  const loginWithGoogle = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return result.user;
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      throw error;
-    }
-  };
 
   const loginWithEmail = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password);
@@ -98,7 +91,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    loginWithGoogle,
     loginWithEmail,
     signUpWithEmail,
     resendVerification,

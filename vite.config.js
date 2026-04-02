@@ -7,28 +7,37 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Disable service worker in development — it intercepts routes and causes blank screens
       devOptions: {
-        enabled: true
+        enabled: false
       },
       manifest: {
         name: 'BU-Track V2',
         short_name: 'BU-Track',
         theme_color: '#0f172a',
+        background_color: '#0f172a',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
+            src: '/favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any'
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/favicon.svg',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/svg+xml',
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Ensure all SPA routes fall back to index.html
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/registerSW\.js/]
       }
     })
   ],
