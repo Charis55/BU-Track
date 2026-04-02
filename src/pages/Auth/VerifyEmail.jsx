@@ -41,26 +41,27 @@ const VerifyEmail = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         class="glass-card login-card"
-        style={{ padding: '3rem 2.5rem' }}
+        style={{ padding: 'max(1.5rem, 3rem) max(1rem, 2.5rem)', textAlign: 'center' }}
       >
         <div className="login-logo-ring">
           <Mail size={32} />
         </div>
         
         <div className="login-header">
-          <h1 className="glow-emerald">Identify Yourself</h1>
-          <p className="text-secondary">We've sent a verification link to:</p>
-          <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '12px', border: '1px solid var(--border-emerald)', margin: '1rem 0' }}>
-            <span style={{ color: '#fff', fontWeight: 600 }}>{user?.email}</span>
+          <h1 className="glow-emerald" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>Identify Yourself</h1>
+          <p className="text-secondary" style={{ fontSize: '0.9rem' }}>We've sent a verification link to:</p>
+          <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '16px', border: '1px solid var(--border-emerald)', margin: '1rem 0', wordBreak: 'break-all' }}>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>{user?.email}</span>
           </div>
-          <p style={{ fontSize: '0.85rem' }}>Please check your inbox (and spam folder) and click the link to activate your BU-Track account.</p>
+          <p style={{ fontSize: '0.85rem', opacity: 0.8, lineHeight: '1.5' }}>Check your student inbox (including spam) and click the activation link to gain Semester Cup access.</p>
         </div>
 
-        <div className="login-actions" style={{ marginTop: '2rem' }}>
+        <div className="login-actions" style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <button 
             onClick={handleRefresh} 
             disabled={isRefreshing}
             className="login-btn primary-btn"
+            style={{ width: '100%', minHeight: '52px' }}
           >
             {isRefreshing ? <RefreshCw size={18} className="spin" /> : <RefreshCw size={18} />}
             I've Verified My Email
@@ -70,7 +71,7 @@ const VerifyEmail = () => {
             onClick={handleResend} 
             disabled={isResending}
             className="login-btn secondary-btn"
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--border-subtle)' }}
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--border-subtle)', width: '100%', minHeight: '52px' }}
           >
             {isResending ? <RefreshCw size={18} className="spin" /> : <Send size={18} />}
             Resend Verification Link
@@ -78,8 +79,8 @@ const VerifyEmail = () => {
 
           <button 
             onClick={logout} 
-            className="login-btn"
-            style={{ marginTop: '1rem', background: 'transparent', color: '#ef4444', border: 'none', textDecoration: 'underline' }}
+            className="toggle-btn"
+            style={{ marginTop: '0.75rem', color: '#ef4444', opacity: 0.8, fontSize: '0.85rem' }}
           >
             <LogOut size={16} /> Sign Out & Use Different Email
           </button>

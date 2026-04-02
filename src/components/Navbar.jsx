@@ -11,30 +11,30 @@ import {
 
 const Navbar = () => {
   return (
-    <nav className="bottom-nav glass-card">
-      <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+    <nav className="bottom-nav glass-card" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '0.5rem 0.25rem', gap: '2px' }}>
+      <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <Home size={20} />
-        <span>Home</span>
+        <span className="responsive-text-hide">Home</span>
       </NavLink>
-      <NavLink to="/meals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/meals" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <Utensils size={20} />
-        <span>Meals</span>
+        <span className="responsive-text-hide">Meals</span>
       </NavLink>
-      <NavLink to="/workouts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/workouts" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <Dumbbell size={20} />
-        <span>Workouts</span>
+        <span className="responsive-text-hide">Workouts</span>
       </NavLink>
-      <NavLink to="/leaderboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/leaderboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <Trophy size={20} />
-        <span>Ranks</span>
+        <span className="responsive-text-hide">Cup</span>
       </NavLink>
-      <NavLink to="/campus" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/campus" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <MapIcon size={20} />
-        <span>Guide</span>
+        <span className="responsive-text-hide">Map</span>
       </NavLink>
-      <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <User size={20} />
-        <span>Profile</span>
+        <span className="responsive-text-hide">Me</span>
       </NavLink>
     </nav>
   );

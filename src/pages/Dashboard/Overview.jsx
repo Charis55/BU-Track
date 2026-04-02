@@ -46,15 +46,28 @@ const RadialRing = ({ value, max, color, size = 80 }) => {
 };
 
 const StatCard = ({ icon: Icon, label, value, unit, color, colorHex, max }) => (
-  <motion.div variants={itemVariants} whileHover={{ y: -6, scale: 1.02 }} className="glass-card stat-card">
-    <div className="icon-circle" style={{ background: `${colorHex}15`, color: colorHex, border: `1px solid ${colorHex}40` }}>
-      <Icon size={20} />
+  <motion.div variants={itemVariants} whileHover={{ y: -6, scale: 1.02 }} className="glass-card stat-card" style={{ padding: '1.25rem' }}>
+    <div className="icon-circle" style={{ background: `${colorHex}15`, color: colorHex, border: `1px solid ${colorHex}40`, width: '44px', height: '44px' }}>
+      <Icon size={18} />
     </div>
-    <div className="stat-info">
-      <span>{label}</span>
-      <h3>{value.toLocaleString()} <small>{unit}</small></h3>
+    <div className="stat-info" style={{ flex: 1, minWidth: 0 }}>
+      <span style={{ fontSize: '0.7rem', opacity: 0.7, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '2px' }}>{label}</span>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>
+          {value.toLocaleString()} <small style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)' }}>{unit}</small>
+        </h3>
+        {max && (
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
+            Goal: {max.toLocaleString()}
+          </span>
+        )}
+      </div>
     </div>
-    {max && <RadialRing value={value} max={max} color={colorHex} size={64} />}
+    {max && (
+      <div style={{ flexShrink: 0, marginLeft: '0.5rem' }}>
+        <RadialRing value={value} max={max} color={colorHex} size={56} />
+      </div>
+    )}
   </motion.div>
 );
 
@@ -146,31 +159,33 @@ const Dashboard = () => {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="dashboard-header animate-fade-in"
       >
-        <div className="user-greeting" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
-          <Link to="/profile" style={{ flexShrink: 0 }}>
-            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(16,185,129,0.3)' }}>
-              <span style={{ fontSize: '1.5rem', color: '#fff', fontWeight: 'bold' }}>{user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</span>
-            </div>
-          </Link>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Trophy size={14} color="var(--accent-gold)" />
-              <p className="text-secondary" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--accent-gold)', margin: 0 }}>
-                {user?.profile?.points || 0} Semester Points
+        <div className="user-greeting" style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Link to="/profile" style={{ flexShrink: 0 }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(16,185,129,0.3)' }}>
+                <span style={{ fontSize: '1.5rem', color: '#fff', fontWeight: 'bold' }}>{user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</span>
+              </div>
+            </Link>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Trophy size={14} color="var(--accent-gold)" />
+                <p className="text-secondary" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--accent-gold)', margin: 0 }}>
+                  {user?.profile?.points || 0} Semester Points
+                </p>
+              </div>
+              <h1 style={{ margin: '0.2rem 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 'clamp(1.2rem, 5vw, 1.75rem)' }}>{user?.displayName?.split(' ')[0] || 'Student'}</h1>
+              <p className="text-secondary" style={{ fontSize: '0.8rem', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.profile?.courseOfStudy || 'General Student'}
               </p>
             </div>
-            <h1 style={{ margin: '0.2rem 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '1.5rem' }}>{user?.displayName?.split(' ')[0] || 'Student'}</h1>
-            <p className="text-secondary" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
-              {user?.profile?.courseOfStudy || 'General Student'}
-            </p>
           </div>
         </div>
-        <div className="header-actions" style={{ width: '100%', display: 'flex', gap: '0.75rem' }}>
+        <div className="header-actions">
           <Link to="/meals" className="action-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
-            <Utensils size={16} /> Log Meal
+            <Utensils size={16} /> <span>Log Meal</span>
           </Link>
           <Link to="/workouts" className="action-btn primary" style={{ flex: 1, justifyContent: 'center', background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 20px rgba(245, 158, 11, 0.2)' }}>
-            <Dumbbell size={16} /> Workout
+            <Dumbbell size={16} /> <span>Workout</span>
           </Link>
         </div>
       </motion.header>
@@ -179,14 +194,14 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass-card" 
-        style={{ padding: '1rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        className="glass-card flex-between" 
+        style={{ padding: 'max(0.75rem, 1rem)', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Sparkles size={16} color="var(--accent-emerald)" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>7-Day Consistency</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Consistency</span>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: 'max(0.5rem, 0.875rem)', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {getStreakDots()}
         </div>
       </motion.div>
@@ -228,13 +243,13 @@ const Dashboard = () => {
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user?.profile?.activityLevel || 'Standard'} Multiplier</span>
             </div>
 
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', padding: '1rem 0' }}>
+            <div className="chart-main-content" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', padding: '1rem 0', flexWrap: 'wrap', justifyContent: 'center' }}>
               <RadialRing value={caloriesIn} max={calGoal} color="#10b981" size={100} />
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: '1 1 240px' }}>
                 <div style={{ marginBottom: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Intake Goal</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>{caloriesIn} / {calGoal} kcal</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Intake Goal</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>{caloriesIn} / {calGoal} kcal</span>
                   </div>
                   <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                     <motion.div
@@ -247,8 +262,8 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Workout Target</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)' }}>{caloriesOut} / {burnGoal} kcal</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Workout Target</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-gold)' }}>{caloriesOut} / {burnGoal} kcal</span>
                   </div>
                   <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                     <motion.div

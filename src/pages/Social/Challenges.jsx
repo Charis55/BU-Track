@@ -43,59 +43,61 @@ const ChallengeCard = ({ challenge, user }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="glass-card" 
-      style={{ padding: '1.5rem', border: enrolled ? '1px solid var(--border-emerald)' : '1px solid var(--border-subtle)' }}
+      style={{ padding: 'max(1rem, 1.5rem)', border: enrolled ? '1px solid var(--border-emerald)' : '1px solid var(--border-subtle)', marginBottom: '0.5rem' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ margin: 0, color: enrolled ? 'var(--accent-emerald)' : '#fff', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.1rem' }}>
-            <Flag size={18} /> {challenge.title}
+      <div className="flex-between" style={{ gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <h3 style={{ margin: 0, color: enrolled ? 'var(--accent-emerald)' : '#fff', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: 'clamp(1rem, 4vw, 1.15rem)', fontWeight: 800 }}>
+            <Flag size={20} /> {challenge.title}
           </h3>
-          <p className="text-secondary" style={{ marginTop: '0.5rem', fontSize: '0.9rem', lineHeight: '1.4' }}>{challenge.desc}</p>
+          <p className="text-secondary" style={{ marginTop: '0.5rem', fontSize: '0.875rem', lineHeight: '1.5', opacity: 0.9 }}>{challenge.desc}</p>
         </div>
         {enrolled && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800 }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', padding: '0.4rem 0.8rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.05em', border: '1px solid var(--border-emerald)' }}>
             ENROLLED
           </motion.div>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.25rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-            <Users size={14} /> <span>{count} Students Enrolled</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}>
+        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ flex: 1, minWidth: '150px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+              <Users size={14} /> <span>{count} Students Enrolled</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', alignItems: 'center' }}>
+              {participants.length > 0 ? (
+                <>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 700 }}>
+                    {participants.slice(0, 2).map(p => `@${p}`).join(', ')} {participants.length > 2 ? `+${participants.length - 2}` : ''}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>are active!</span>
+                </>
+              ) : (
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Be the first to join!</span>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '-8px' }}>
-            {participants.length > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 600 }}>
-                  {participants.slice(0, 3).map(p => `@${p}`).join(', ')} {participants.length > 3 ? `+${participants.length - 3}` : ''}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>are in!</span>
-              </div>
-            ) : (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Be the first to join!</span>
-            )}
+          
+          <div style={{ display: 'flex', gap: '0.5rem', width: '100%', flex: '1 1 100%' }}>
+            <button 
+              onClick={() => setShareModalOpen(true)}
+              style={{ 
+                background: 'rgba(255,255,255,0.05)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)',
+                borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0 
+              }}
+            >
+              <Share2 size={18} />
+            </button>
+            <button 
+              onClick={handleEnroll} 
+              disabled={enrolled}
+              className={`log-btn ${enrolled ? 'secondary' : 'primary'}`}
+              style={{ flex: 1, padding: '0.75rem 1.25rem', fontSize: '0.875rem', fontWeight: 800, borderRadius: '12px' }}
+            >
+              {enrolled ? 'See You There' : 'Join Session'}
+            </button>
           </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            onClick={() => setShareModalOpen(true)}
-            style={{ 
-              background: 'rgba(255,255,255,0.05)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)',
-              borderRadius: '8px', padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' 
-            }}
-          >
-            <Share2 size={16} />
-          </button>
-          <button 
-            onClick={handleEnroll} 
-            disabled={enrolled}
-            className={`log-btn ${enrolled ? 'secondary' : 'primary'}`}
-            style={{ width: 'auto', padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
-          >
-            {enrolled ? 'See You There' : 'Join Session'}
-          </button>
         </div>
       </div>
       <ShareModal 
@@ -120,7 +122,7 @@ const Challenges = () => {
   if (!dailyData) return null;
 
   return (
-    <div className="container animate-fade-in" style={{ paddingBottom: '100px' }}>
+    <div className="container animate-fade-in" style={{ paddingBottom: '9rem' }}>
       <header className="page-header">
         <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">Campus Challenges</h1>
@@ -147,14 +149,14 @@ const Challenges = () => {
 
         {dailyData.type === 'ACTIVE' && (
           <>
-            <div className="glass-card" style={{ padding: '2rem', textAlign: 'center', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)' }}>
-              <Zap size={40} color="var(--accent-emerald)" style={{ margin: '0 auto 1rem' }} />
-              <h3>Daily Double Duo</h3>
-              <p className="text-secondary" style={{ fontSize: '0.9rem' }}>Two new challenges have dropped. Enroll and log your progress to climb the student leaderboards.</p>
-            </div>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: 'max(1.5rem, 2rem)', textAlign: 'center', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)', borderRadius: '24px' }}>
+              <Zap size={40} color="var(--accent-emerald)" style={{ margin: '0 auto 1.25rem' }} />
+              <h3 style={{ fontSize: 'clamp(1.1rem, 5vw, 1.5rem)', fontWeight: 800 }}>Daily Double Duo</h3>
+              <p className="text-secondary" style={{ fontSize: '0.875rem', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto' }}>Two new challenges have dropped. Enroll and log your progress to climb the student leaderboards.</p>
+            </motion.div>
 
-            <h3 style={{ marginTop: '1rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Trophy size={20} color="var(--accent-gold)"/> Active Today
+            <h3 style={{ marginTop: '1.5rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1rem', fontWeight: 700 }}>
+              <Trophy size={18} color="var(--accent-gold)"/> Active Today
             </h3>
 
             <div style={{ display: 'grid', gap: '1rem' }}>

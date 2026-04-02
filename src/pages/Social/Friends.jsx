@@ -80,30 +80,31 @@ const Friends = () => {
     }
 
     return (
-      <div key={u.uid} className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div key={u.uid} className="glass-card friend-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={20} color="white"/>
           </div>
-          <div>
-            <h4 style={{ margin: 0, color: '#f1f5f9' }}>@{u.username || 'unknown'}</h4>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Activity size={12}/> {u.matricNumber || 'Student'}
+          <div style={{ minWidth: 0 }}>
+            <h4 style={{ margin: 0, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.95rem' }}>@{u.username || 'unknown'}</h4>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Activity size={12}/> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.matricNumber || 'Student'}</span>
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           {type === 'friend' && (
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 'max(0.5rem, 1rem)', alignItems: 'center' }}>
               <button 
                 onClick={() => navigate(`/chat/${u.uid}`)}
-                style={{ background: 'transparent', border: '1px solid #10b981', color: '#10b981', borderRadius: '20px', padding: '0.25rem 0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                <MessageCircle size={14} /> Message
+                className="action-btn-small"
+                style={{ background: 'transparent', border: '1px solid #10b981', color: '#10b981', borderRadius: '20px', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                <MessageCircle size={14} /> <span className="responsive-text-hide">Message</span>
               </button>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f59e0b' }}>{u.points || 0}</div>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Points</span>
+                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent-gold)', lineHeight: 1 }}>{u.points || 0}</div>
+                <span style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pts</span>
               </div>
             </div>
           )}
@@ -150,21 +151,24 @@ const Friends = () => {
         <div style={{ width: '40px' }} />
       </header>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem', borderRadius: '12px' }}>
+      <div className="leaderboard-tabs glass-card" style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
         <button 
           onClick={() => setActiveTab('friends')}
-          style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'friends' ? '#3b82f6' : 'transparent', color: activeTab === 'friends' ? 'white' : '#94a3b8', transition: 'all 0.2s', cursor: 'pointer' }}>
-          My Friends
+          className={`tab-btn ${activeTab === 'friends' ? 'active' : ''}`}
+          style={{ flex: 1 }}>
+          <Users size={18} /> <span className="responsive-text-sm">Friends</span>
         </button>
         <button 
           onClick={() => setActiveTab('requests')}
-          style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'requests' ? '#3b82f6' : 'transparent', color: activeTab === 'requests' ? 'white' : '#94a3b8', transition: 'all 0.2s', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-          Requests {friendsData.pending.length > 0 && <span style={{ background: '#ef4444', color: 'white', borderRadius: '10px', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 'bold' }}>{friendsData.pending.length}</span>}
+          className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
+          style={{ flex: 1 }}>
+          <Clock size={18} /> <span className="responsive-text-sm">Requests</span> {friendsData.pending.length > 0 && <span style={{ background: '#ef4444', color: 'white', borderRadius: '10px', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 'bold' }}>{friendsData.pending.length}</span>}
         </button>
         <button 
           onClick={() => setActiveTab('find')}
-          style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'find' ? '#3b82f6' : 'transparent', color: activeTab === 'find' ? 'white' : '#94a3b8', transition: 'all 0.2s', cursor: 'pointer' }}>
-          Find
+          className={`tab-btn ${activeTab === 'find' ? 'active' : ''}`}
+          style={{ flex: 1 }}>
+          <Search size={18} /> <span className="responsive-text-sm">Find</span>
         </button>
       </div>
 

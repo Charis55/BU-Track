@@ -54,7 +54,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem', paddingBottom: '110px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100dvh', padding: '1rem', paddingBottom: '9rem', maxWidth: '800px', margin: '0 auto' }}>
       <header className="page-header" style={{ marginBottom: '1rem', flexShrink: 0 }}>
         <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald" style={{ fontSize: '1.2rem', margin: 0 }}>
@@ -144,7 +144,7 @@ const Chat = () => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Message..."
-          style={{ flex: 1, padding: '0.875rem 1rem', borderRadius: '2rem', border: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.05)', color: 'white', outline: 'none' }}
+          style={{ flex: 1, padding: '0.875rem 1rem', borderRadius: '2rem', border: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.05)', color: 'white', outline: 'none', fontSize: '16px' }}
         />
         <button 
           type="submit" 

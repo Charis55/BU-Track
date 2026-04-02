@@ -125,7 +125,7 @@ const AcademyTutorial = ({ user, onComplete }) => {
         backdropFilter: 'blur(10px)'
       }}
     >
-      <div className="tutorial-card glass-card" style={{ width: '100%', maxWidth: '440px', padding: '2rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
+      <div className="tutorial-card glass-card" style={{ width: '100%', maxWidth: '440px', padding: 'max(1.5rem, 2rem) max(1rem, 1.5rem)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 'min(500px, 80dvh)' }}>
         <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: slides[currentSlide].color, opacity: 0.1, borderRadius: '50%', filter: 'blur(60px)' }} />
         
         {/* Skip button securely mapped to the top right edge */}
@@ -149,18 +149,18 @@ const AcademyTutorial = ({ user, onComplete }) => {
               {slides[currentSlide].icon}
             </div>
             
-            <h2 className="glow-emerald" style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#fff' }}>{slides[currentSlide].title}</h2>
-            <p className="text-secondary" style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '2rem' }}>{slides[currentSlide].desc}</p>
+            <h2 className="glow-emerald" style={{ fontSize: 'clamp(1.25rem, 6vw, 1.75rem)', marginBottom: '0.75rem', color: '#fff', fontWeight: 800 }}>{slides[currentSlide].title}</h2>
+            <p className="text-secondary" style={{ fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem', opacity: 0.9 }}>{slides[currentSlide].desc}</p>
             
             {slides[currentSlide].points && (
               <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '2rem' }}>
                 {slides[currentSlide].points.map((p, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', padding: '0.75rem 1rem', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ color: 'var(--accent-emerald)' }}>{p.icon}</span>
-                      <span style={{ fontWeight: 600 }}>{p.label}</span>
+                      <span style={{ color: 'var(--accent-emerald)', display: 'flex' }}>{p.icon}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{p.label}</span>
                     </div>
-                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>{p.value}</span>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 900, fontSize: '0.95rem' }}>{p.value}</span>
                   </div>
                 ))}
               </div>

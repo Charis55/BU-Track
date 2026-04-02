@@ -48,20 +48,22 @@ const Leaderboard = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="glass-card" 
-        style={{ padding: '1.25rem', marginBottom: '1.5rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.1), rgba(16,185,129,0.1))', border: '1px solid rgba(245,158,11,0.2)', position: 'relative', overflow: 'hidden' }}
+        style={{ padding: 'max(1rem, 1.25rem)', marginBottom: '1.5rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.1), rgba(16,185,129,0.1))', border: '1px solid rgba(245,158,11,0.2)', position: 'relative', overflow: 'hidden' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', background: 'rgba(245,158,11,0.15)', borderRadius: '12px', color: 'var(--accent-gold)' }}>
-            <Award size={24} />
-          </div>
-          <div>
-            <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff' }}>Semester Prizes Unlocked</h4>
-            <p className="text-secondary" style={{ fontSize: '0.75rem', margin: '0.2rem 0 0' }}>#1 Student & Course win Free Gym & Meal Discounts</p>
+        <div className="flex-between" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
+            <div style={{ padding: '0.75rem', background: 'rgba(245,158,11,0.15)', borderRadius: '12px', color: 'var(--accent-gold)', flexShrink: 0 }}>
+              <Award size={24} />
+            </div>
+            <div>
+              <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff' }}>Semester Prizes Unlocked</h4>
+              <p className="text-secondary" style={{ fontSize: '0.75rem', margin: '0.2rem 0 0' }}>#1 Student & Course win Free Gym & Meal Discounts</p>
+            </div>
           </div>
         </div>
       </motion.div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div className="responsive-grid-2" style={{ marginBottom: '1.5rem' }}>
         <Link to="/friends" className="glass-card" style={{ padding: '1rem', textAlign: 'center', textDecoration: 'none' }}>
           <h4 style={{ margin: 0, color: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><Users size={16}/> Friends</h4>
         </Link>
@@ -108,11 +110,11 @@ const Leaderboard = () => {
                   borderLeft: idx === 0 ? '4px solid var(--accent-gold)' : idx === 1 ? '4px solid #94a3b8' : idx === 2 ? '4px solid #b45309' : 'none'
                 }}
               >
-                <span className={`rank-num ${idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : ''}`}>
+                <span className={`rank-num ${idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : ''}`} style={{ flexShrink: 0 }}>
                   {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                 </span>
-                <div className="rank-info" style={{ flex: 1, marginLeft: '1rem' }}>
-                  <h4 style={{ color: idx < 3 ? '#fff' : 'inherit', fontSize: '1rem' }}>
+                <div className="rank-info" style={{ flex: 1, marginLeft: 'max(0.5rem, 1rem)', minWidth: 0 }}>
+                  <h4 style={{ color: idx < 3 ? '#fff' : 'inherit', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {tab === 'students' ? `@${item.username || "anonymous"}` : item.name}
                   </h4>
                   <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>

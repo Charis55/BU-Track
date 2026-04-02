@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Utensils, ChevronLeft, X, Edit3, Check, Flame, Beef, Wheat, Droplets } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getDailyLog, logUserMeal, calculateUserBiometrics } from '../../utils/db';
 import ShareModal from '../../components/ShareModal';
 
 const NIGERIAN_FOODS = [
@@ -85,7 +86,14 @@ const MealLogger = () => {
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [customFood, setCustomFood] = useState({ name: '', calories: '', carbs: '', protein: '', fat: '' });
-  const calGoal = 2400;
+  const [calGoal, setCalGoal] = useState(2400);
+
+  useEffect(() => {
+    if (user?.profile) {
+      const bio = calculateUserBiometrics(user.profile);
+      setCalGoal(bio.daily);
+    }
+  }, [user?.profile]);
 
   useEffect(() => {
     const fetchDaily = async () => {
@@ -171,28 +179,32 @@ const MealLogger = () => {
         <div style={{ width: '40px' }} />
       </header>
 
-      <div className="meal-content-grid">
-        {/* Left: Search + Food List */}
-        <section className="meal-search-section">
-          {/* Search bar */}
-          <div className="glass-card search-box">
-            <Search size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-            <input
-              type="text"
-              placeholder="Search Nigerian foods..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ padding: 0 }}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                <X size={16} />
-              </button>
-            )}
+      <div className="meal-content-grid" style={{ marginTop: '1.5rem' }}>
+        <section className="food-search-section">
+          {/* Search and custom action bar */}
+          <div className="flex-between" style={{ gap: '0.875rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+            <div className="glass-card search-box" style={{ flex: 1, minWidth: '150px', margin: 0 }}>
+              <Search size={20} className="text-muted" />
+              <input
+                type="text"
+                placeholder="Find Nigerian favorites..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ width: '100%', fontSize: '16px' }}
+              />
+            </div>
+            <button
+              onClick={() => setShowCustomForm(!showCustomForm)}
+              className="action-btn primary"
+              style={{ padding: '0.875rem 1.25rem', whiteSpace: 'nowrap', width: 'auto' }}
+            >
+              {showCustomForm ? <X size={18} /> : <Plus size={18} />}
+              <span className="responsive-text-sm">{showCustomForm ? 'Cancel' : 'Custom Entry'}</span>
+            </button>
           </div>
 
           {/* Category chips */}
-          <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          <div className="category-scroll-container" style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
             <button
               onClick={() => setActiveCategory('All')}
               style={{
@@ -230,6 +242,7 @@ const MealLogger = () => {
               color: showCustomForm ? 'var(--accent-gold)' : 'var(--text-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               fontWeight: 700, fontSize: '0.9rem', fontFamily: 'inherit',
+              minHeight: '48px',
               transition: 'all 0.2s'
             }}
           >
@@ -327,16 +340,15 @@ const MealLogger = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '1.25rem 1.5rem',
-                    marginBottom: '1rem',
+                    padding: 'max(1rem, 1.25rem)',
+                    marginBottom: '0.75rem',
                     cursor: 'pointer',
                     borderRadius: '1.25rem',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.05)',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                    minHeight: '85px',
-                    height: 'auto',
-                    overflow: 'visible'
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    minHeight: '80px',
+                    gap: '1rem'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
@@ -348,14 +360,14 @@ const MealLogger = () => {
                     }}>
                       <Utensils size={20} />
                     </div>
-                    <div className="food-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                      <h4 style={{ fontSize: '1.05rem', fontWeight: 600, margin: 0, color: '#f8fafc', letterSpacing: '0.3px', lineHeight: '1.2' }}>{food.name}</h4>
-                      <p className="text-muted" style={{ fontSize: '0.85rem', margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', lineHeight: '1.2' }}>
-                        <span style={{ color: '#cbd5e1' }}>{food.calories} kcal</span>
-                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                        <span style={{ color: '#94a3b8' }}>per {food.unit}</span>
-                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
-                        <span style={{ color: '#f59e0b', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', background: 'rgba(245, 158, 11, 0.15)', padding: '2px 6px', borderRadius: '6px' }}>{food.category}</span>
+                    <div className="food-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{food.name}</h4>
+                      <p className="text-muted" style={{ fontSize: '0.8rem', margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem', lineHeight: '1.2' }}>
+                        <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>{food.calories}kcal</span>
+                        <span style={{ opacity: 0.3 }}>•</span>
+                        <span>{food.unit}</span>
+                        <span style={{ opacity: 0.3 }}>•</span>
+                        <span style={{ color: '#f59e0b', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>{food.category}</span>
                       </p>
                     </div>
                   </div>
@@ -380,7 +392,12 @@ const MealLogger = () => {
 
             {/* Big calorie number */}
             <div className="total-display">
-              <span className="total-val" style={{ color: pct >= 100 ? 'var(--accent-gold)' : 'white' }}>{totalToday.toLocaleString()}</span>
+              <span className="total-val" style={{ color: pct >= 100 ? 'var(--accent-gold)' : 'white' }}>
+                {totalToday.toLocaleString()}
+                <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.3)', marginLeft: '0.4rem', fontWeight: 500 }}>
+                  / {calGoal.toLocaleString()}
+                </span>
+              </span>
               <span className="total-label">/ {calGoal.toLocaleString()} kcal goal</span>
             </div>
 

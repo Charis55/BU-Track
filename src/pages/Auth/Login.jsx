@@ -110,16 +110,16 @@ const Login = () => {
   if (isVerificationSent) {
     return (
       <div className="login-container">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card login-card text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-card login-card text-center" style={{ padding: 'max(1.5rem, 3rem)' }}>
           <CheckCircle size={64} className="glow-emerald" style={{ margin: '0 auto 1.5rem' }} />
-          <h1 className="glow-emerald">Verify your Email</h1>
-          <p className="text-secondary" style={{ marginBottom: '2rem' }}>
+          <h1 className="glow-emerald" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>Verify Email</h1>
+          <p className="text-secondary" style={{ marginBottom: '2rem', fontSize: '0.95rem' }}>
             A security link was sent to <strong style={{ color: '#fff' }}>{email}</strong>. 
-            Please verify your account to access the BU-Track dashboard.
+            Verification is required to access the Semester Cup.
           </p>
           <div className="login-actions" style={{ gap: '1rem' }}>
-            <button onClick={handleResend} disabled={isLoading} className="login-btn primary-btn" style={{ width: '100%' }}>
-              {isLoading ? 'Sending...' : 'Resend Verification Link'}
+            <button onClick={handleResend} disabled={isLoading} className="login-btn primary-btn" style={{ width: '100%', minHeight: '52px' }}>
+              {isLoading ? 'Sending...' : 'Resend Link'}
             </button>
             <button onClick={() => { setIsVerificationSent(false); logout(); }} className="toggle-btn" style={{ margin: '1rem auto' }}>
               Back to Login
@@ -141,9 +141,9 @@ const Login = () => {
         className="glass-card login-card"
       >
         <div className="login-header">
-          <h1 className="glow-emerald">BU-Track</h1>
-          <p className="text-secondary">
-            {isForgotPassword ? 'Reset your security' : isSignUp ? 'Create your student profile' : 'Your Ultimate Fitness Companion'}
+          <h1 className="glow-emerald" style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', marginBottom: '0.25rem' }}>BU-Track</h1>
+          <p className="text-secondary" style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+            {isForgotPassword ? 'Reset your security' : isSignUp ? 'Create your profile' : 'Elite Student Fitness'}
           </p>
         </div>
 
@@ -178,11 +178,12 @@ const Login = () => {
               <Mail size={18} className="input-icon" />
               <input 
                 type="email" 
-                placeholder="Official Student Email" 
+                placeholder="Student Email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                style={{ fontSize: '16px' }}
               />
             </div>
 
@@ -196,6 +197,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete={isSignUp ? "new-password" : "current-password"}
+                  style={{ fontSize: '16px' }}
                 />
               </div>
             )}

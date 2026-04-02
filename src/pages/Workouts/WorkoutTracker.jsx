@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { WORKOUT_CATEGORIES } from '../../data/workouts';
+import { getDailyLog, logUserWorkout, calculateUserBiometrics } from '../../utils/db';
 import ShareModal from '../../components/ShareModal';
 
 const WorkoutTracker = () => {
@@ -23,7 +24,15 @@ const WorkoutTracker = () => {
   const [duration, setDuration] = useState(30);
   const [isLogging, setIsLogging] = useState(false);
   const [burnedToday, setBurnedToday] = useState(0);
+  const [burnGoal, setBurnGoal] = useState(500);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.profile) {
+      const bio = calculateUserBiometrics(user.profile);
+      setBurnGoal(Math.round(bio.daily * 0.25));
+    }
+  }, [user?.profile]);
 
   useEffect(() => {
     const fetchDaily = async () => {
@@ -87,33 +96,35 @@ const WorkoutTracker = () => {
             <h3>Choose Activity</h3>
             
             {/* Primary Category Selection */}
-            <div className="category-chips flex-wrap mb-4" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div className="category-scroll-container" style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.875rem' }}>
               {WORKOUT_CATEGORIES.map(cat => (
                 <button 
                   key={cat.id}
                   onClick={() => handleCategorySelect(cat)}
                   style={{
-                    padding: '0.6rem 1rem',
+                    padding: '0.75rem 1.25rem',
                     borderRadius: '50px',
                     border: '1px solid rgba(255,255,255,0.1)',
                     background: activeCategory.id === cat.id ? `${cat.color}20` : 'rgba(255,255,255,0.03)',
-                    color: activeCategory.id === cat.id ? cat.color : '#cbd5e1',
+                    color: activeCategory.id === cat.id ? cat.color : 'var(--text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.625rem',
                     whiteSpace: 'nowrap',
-                    fontWeight: 600,
-                    transition: 'all 0.2s'
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    transition: 'all 0.25s',
+                    flexShrink: 0
                   }}
                 >
-                  <span>{cat.icon}</span> {cat.name}
+                  <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span> {cat.name}
                 </button>
               ))}
             </div>
 
             {/* Sub-Category Selection */}
             {activeCategory.subcategories.length > 0 && (
-              <div className="subcategory-tabs mb-4 border-b pb-2" style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem', overflowX: 'auto' }}>
+              <div className="category-scroll-container" style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '1.5rem', overflowX: 'auto' }}>
                 {activeCategory.subcategories.map(sub => (
                   <button
                     key={sub.id}
@@ -122,14 +133,16 @@ const WorkoutTracker = () => {
                       setSelectedWorkout(null);
                     }}
                     style={{
-                      paddingBottom: '0.5rem',
+                      paddingBottom: '0.75rem',
                       background: 'none',
                       border: 'none',
-                      color: activeSub.id === sub.id ? activeCategory.color : '#94a3b8',
+                      color: activeSub.id === sub.id ? activeCategory.color : 'var(--text-muted)',
                       borderBottom: activeSub.id === sub.id ? `2px solid ${activeCategory.color}` : '2px solid transparent',
-                      fontWeight: activeSub.id === sub.id ? 700 : 500,
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
                       whiteSpace: 'nowrap',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      flexShrink: 0
                     }}
                   >
                     {sub.name}
@@ -166,7 +179,7 @@ const WorkoutTracker = () => {
                     }}
                   >
                     <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.5rem' }}>{workout.icon}</div>
-                    <span style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>{workout.name}</span>
+                    <span style={{ fontSize: '0.85rem', lineHeight: '1.2', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{workout.name}</span>
                   </button>
                 ))}
               </motion.div>
@@ -203,24 +216,25 @@ const WorkoutTracker = () => {
                     <span>Estimated Burn: <strong>{selectedWorkout.calPerMin * duration} kcal</strong></span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                  <div className="drawer-actions">
                     <button 
                       type="button"
                       onClick={() => setShareModalOpen(true)}
                       style={{ 
                         flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', color: activeCategory.color, 
-                        border: `1px solid ${activeCategory.color}50`, borderRadius: '0.625rem', cursor: 'pointer', fontWeight: 600
+                        border: `1px solid ${activeCategory.color}50`, borderRadius: '0.625rem', cursor: 'pointer', fontWeight: 600,
+                        minHeight: '48px'
                       }}
                     >
-                      Share
+                      Share Session
                     </button>
                     <button 
                       className="log-btn primary" 
                       disabled={isLogging} 
                       onClick={handleLog}
-                      style={{ background: activeCategory.color, flex: 2 }}
+                      style={{ background: activeCategory.color, flex: 2, minHeight: '48px' }}
                     >
-                      {isLogging ? 'Saving Session...' : 'Finish & Log Workout'}
+                      {isLogging ? 'Saving...' : 'Finish & Log Workout'}
                     </button>
                   </div>
                 </motion.div>
@@ -243,7 +257,13 @@ const WorkoutTracker = () => {
           <div className="glass-card summary-display">
              <div className="summary-info">
                <h3 className="gold-text">Today's Burn</h3>
-               <div className="burned-val">{burnedToday} <small>kcal</small></div>
+               <div className="burned-val">
+                 {burnedToday}
+                 <span style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', marginLeft: '0.4rem', fontWeight: 500 }}>
+                   / {burnGoal}
+                 </span>
+                 <small style={{ marginLeft: '0.4rem' }}>kcal</small>
+               </div>
              </div>
              <Award size={40} className="gold-text" />
           </div>

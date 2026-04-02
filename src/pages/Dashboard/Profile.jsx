@@ -147,7 +147,7 @@ const Profile = () => {
         <div style={{ width: '40px' }} />
       </header>
 
-      <form onSubmit={handleUpdate} className="profile-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1.5fr', gap: '2rem', alignItems: 'start' }}>
+      <form onSubmit={handleUpdate} className="profile-grid" style={{ alignItems: 'start' }}>
         
         {/* Left Column: Identity & Security */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -159,9 +159,9 @@ const Profile = () => {
             <p className="text-secondary" style={{ marginBottom: '1.5rem' }}>@{formData.username}</p>
             
             <div className="input-group" style={{ textAlign: 'left' }}>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={14}/> Babcock Email</label>
-              <input type="text" value={user?.email} readOnly style={{ width: '100%', cursor: 'not-allowed', color: '#64748b', opacity: 0.8 }} />
-              <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: '#10b981' }}>Verified Student Status</p>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={14}/> Babcock Email</label>
+              <input type="text" value={user?.email} readOnly style={{ width: '100%', cursor: 'not-allowed', color: 'var(--text-muted)', opacity: 0.8, fontSize: '16px' }} />
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>Verified Student Status</p>
             </div>
           </motion.div>
 
@@ -201,18 +201,18 @@ const Profile = () => {
             <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Academic Information</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div className="responsive-grid-2" style={{ gap: '1.25rem' }}>
             <div className="input-group">
               <label>Full Name</label>
-              <input type="text" value={formData.displayName} onChange={e => setFormData({...formData, displayName: e.target.value})} />
+              <input type="text" value={formData.displayName} onChange={e => setFormData({...formData, displayName: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
               <label>User Handle</label>
-              <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} />
+              <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
               <label><Hash size={16}/> Matric Number</label>
-              <input type="text" value={formData.matric} onChange={e => setFormData({...formData, matric: e.target.value})} />
+              <input type="text" value={formData.matric} onChange={e => setFormData({...formData, matric: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group" style={{ gridColumn: 'span 2' }}>
               <label>Course of Study</label>
@@ -220,7 +220,7 @@ const Profile = () => {
                 className="custom-select"
                 value={formData.courseOfStudy} 
                 onChange={e => setFormData({...formData, courseOfStudy: e.target.value})}
-                style={{ width: '100%', padding: '0.8rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: '#fff' }}
+                style={{ width: '100%', padding: '0.875rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: '#fff', fontSize: '16px' }}
               >
                 {COURSES.map(school => (
                   <optgroup key={school.school} label={school.school}>
@@ -255,10 +255,10 @@ const Profile = () => {
             <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Physical Metrics</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div className="responsive-grid-2" style={{ gap: '1.25rem' }}>
             <div className="input-group">
               <label>Age</label>
-              <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
+              <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
               <label>Gender</label>
@@ -270,18 +270,18 @@ const Profile = () => {
             </div>
             <div className="input-group">
               <label><Scale size={16}/> Weight (kg)</label>
-              <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} />
+              <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
               <label><Ruler size={16}/> Height (cm)</label>
-              <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} />
+              <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             
             <div className="input-field" style={{ gridColumn: 'span 2' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Activity Level</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Activity Level</label>
+              <div className="responsive-grid-2" style={{ gap: '0.75rem' }}>
                 {['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active'].map(a => (
-                  <button key={a} type="button" onClick={() => setFormData({...formData, activityLevel: a})} className={`option-btn ${formData.activityLevel === a ? 'selected' : ''}`} style={{ padding: '0.5rem', fontSize: '0.75rem' }}>{a}</button>
+                  <button key={a} type="button" onClick={() => setFormData({...formData, activityLevel: a})} className={`option-btn ${formData.activityLevel === a ? 'selected' : ''}`} style={{ padding: '0.875rem 0.5rem', fontSize: '0.75rem' }}>{a}</button>
                 ))}
               </div>
             </div>

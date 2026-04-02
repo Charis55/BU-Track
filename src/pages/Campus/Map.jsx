@@ -135,14 +135,15 @@ export default function CampusDirectory() {
         <h1 className="text-glow">Campus Directory</h1>
         <p className="subtitle">Find exact 1-to-1 Google Maps directions to every hall, faculty, and amenity using precise POI resolution.</p>
 
-        <div className="search-bar-wrapper">
-          <Search size={20} className="search-icon" color="#94a3b8" />
+        <div className="search-bar-wrapper" style={{ marginTop: '1.5rem', marginBottom: '1.25rem' }}>
+          <Search size={22} className="search-icon" color="#94a3b8" />
           <input 
             type="text" 
-            placeholder="Search for a location... (e.g., 'Emerald Hall', 'Bank')"
+            placeholder="Search hallmark locations..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="directory-search-input"
+            style={{ width: '100%', fontSize: '16px' }}
           />
           {searchQuery && (
             <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
@@ -153,15 +154,16 @@ export default function CampusDirectory() {
       </div>
 
       {/* ── CATEGORY FILTER ── */}
-      <div className="category-scroll-container">
+      <div className="category-scroll-container" style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
         {CATEGORIES.map(cat => (
           <button 
             key={cat.id}
             className={`category-pill ${activeCategory === cat.id ? 'active' : ''}`}
             onClick={() => setActiveCategory(cat.id)}
+            style={{ flexShrink: 0, padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.05)', background: activeCategory === cat.id ? 'var(--accent-emerald)' : 'rgba(255,255,255,0.03)', color: activeCategory === cat.id ? '#fff' : '#94a3b8', transition: 'all 0.2s', fontWeight: 700, fontSize: '0.85rem' }}
           >
-            <span className="cat-icon">{cat.icon}</span> 
-            <span className="cat-label">{cat.label}</span>
+            <span>{cat.icon}</span> 
+            <span>{cat.label}</span>
           </button>
         ))}
       </div>
