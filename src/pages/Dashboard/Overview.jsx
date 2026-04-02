@@ -131,7 +131,7 @@ const Dashboard = () => {
         transition={{ duration: 1.5, repeat: Infinity }}
         style={{ color: 'var(--accent-emerald)', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '0.1em' }}
       >
-        SYNCING ACADEMY DATA...
+        SYNCING BU-TRACK DATA...
       </motion.div>
     </div>
   );

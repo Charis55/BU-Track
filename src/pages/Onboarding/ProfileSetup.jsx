@@ -194,7 +194,7 @@ const ProfileSetup = ({ onComplete }) => {
 
               {step === 2 && (
                 <div className="form-group">
-                  <h2 className="glow-gold">Academy Focus</h2>
+                  <h2 className="glow-gold">BU-Track Focus</h2>
                   <p className="text-secondary">What's your biological goal for this semester?</p>
                   <div className="option-stack" style={{ gap: '1rem' }}>
                     {[

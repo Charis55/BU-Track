@@ -18,7 +18,7 @@ import { db } from '../firebase';
 
 const slides = [
   {
-    title: "Welcome to the Academy",
+    title: "Welcome to BU-Track",
     desc: "You are now part of the most elite health ecosystem at Babcock University. Every action you take earns you personal points and brings your Course of Study closer to the Cup.",
     icon: <Zap size={48} className="glow-emerald" />,
     color: "var(--accent-emerald)"

@@ -129,7 +129,7 @@ const Profile = () => {
             <h3 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}><ShieldAlert size={18} /> Support & Learning</h3>
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               <button type="button" onClick={retriggerTutorial} className="toggle-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', padding: '0.75rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-emerald)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                <Trophy size={16} /> Launch Points Academy
+                <Trophy size={16} /> Open BU-Track Guide
               </button>
               <button type="button" onClick={handlePasswordReset} className="toggle-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', padding: '0.75rem' }}>
                 <Key size={16} /> Request Password Reset
