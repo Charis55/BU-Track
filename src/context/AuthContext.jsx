@@ -6,9 +6,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  deleteUser
 } from "firebase/auth";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "../firebase";
 
 const AuthContext = createContext();
@@ -83,6 +84,17 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => signOut(auth);
 
+  const deleteAccount = async () => {
+    if (auth.currentUser) {
+      try {
+        await deleteDoc(doc(db, "users", auth.currentUser.uid));
+        await deleteUser(auth.currentUser);
+      } catch (e) {
+        throw e;
+      }
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -91,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     signUpWithEmail,
     resendVerification,
     resetPassword,
+    deleteAccount,
     logout
   };
 

@@ -7,11 +7,14 @@ import {
   Calendar, 
   Award, 
   X, 
-  ChevronRight, 
+  ChevronRight,
+  ChevronLeft,
   Zap,
   Users,
   Utensils,
-  Dumbbell
+  Dumbbell,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -22,6 +25,30 @@ const slides = [
     desc: "You are now part of the most elite health ecosystem at Babcock University. Every action you take earns you personal points and brings your Course of Study closer to the Cup.",
     icon: <Zap size={48} className="glow-emerald" />,
     color: "var(--accent-emerald)"
+  },
+  {
+    title: "Tracking Your Meals",
+    desc: "Navigate to the Meals tab to log your nutrition. Search through our robust Nigerian database (e.g. Jollof Rice, Ofada) or log a custom entry. Hit your daily Caloric Goal to stay fueled.",
+    icon: <Utensils size={48} color="#fcd34d" />,
+    color: "#fcd34d"
+  },
+  {
+    title: "Crush Your Workouts",
+    desc: "Jump into the Workouts tab to log exercises. Select specific campus activities and strict calisthenics, set your duration, and the system automatically calculates your calorie burn.",
+    icon: <Dumbbell size={48} color="#3b82f6" />,
+    color: "#3b82f6"
+  },
+  {
+    title: "Build Your Circle",
+    desc: "Use the Friends module to search for peers using '@username'. Accept requests, chat real-time securely, and climb the leaderboards together shoulder-to-shoulder.",
+    icon: <MessageCircle size={48} color="#10b981" />,
+    color: "#10b981"
+  },
+  {
+    title: "Interactive Sharing",
+    desc: "Did an amazing workout? Stumbled on a great challenge? Tap the Share icon inside your logs to broadcast exact payloads directly into your friend chats, so they can run the exact setup with one click!",
+    icon: <Share2 size={48} color="#a855f7" />,
+    color: "#a855f7"
   },
   {
     title: "The Strict Consistency Rule",
@@ -48,7 +75,7 @@ const slides = [
   },
   {
     title: "The Grand Prizes",
-    desc: "At the end of the semester, the top students and courses win exclusive rewards including Free Gym Memberships, Meal Discounts, and Tech Gadgets.",
+    desc: "At the end of the semester, only the #1 ranking student and the #1 leading Course of Study win the exclusive rewards, including Free Gym Memberships, Meal Discounts, and Tech Gadgets.",
     icon: <Award size={48} className="glow-emerald" />,
     color: "var(--accent-emerald)"
   }
@@ -65,6 +92,16 @@ const AcademyTutorial = ({ user, onComplete }) => {
       await updateDoc(userRef, { tutorialCompleted: true });
       if (onComplete) onComplete();
     }
+  };
+
+  const handlePrev = () => {
+    if (currentSlide > 0) setCurrentSlide(s => s - 1);
+  };
+
+  const handleSkip = async () => {
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, { tutorialCompleted: true });
+    if (onComplete) onComplete();
   };
 
   return (
@@ -88,9 +125,17 @@ const AcademyTutorial = ({ user, onComplete }) => {
         backdropFilter: 'blur(10px)'
       }}
     >
-      <div className="tutorial-card glass-card" style={{ width: '100%', maxWidth: '440px', padding: '2.5rem', position: 'relative', overflow: 'hidden' }}>
+      <div className="tutorial-card glass-card" style={{ width: '100%', maxWidth: '440px', padding: '2rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: slides[currentSlide].color, opacity: 0.1, borderRadius: '50%', filter: 'blur(60px)' }} />
         
+        {/* Skip button securely mapped to the top right edge */}
+        <button 
+          onClick={handleSkip} 
+          style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, transition: 'all 0.2s' }}
+        >
+          <X size={16} />
+        </button>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -123,19 +168,30 @@ const AcademyTutorial = ({ user, onComplete }) => {
           </motion.div>
         </AnimatePresence>
 
-        <div className="tutorial-footer" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="tutorial-footer" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.25rem' }}>
+          {currentSlide > 0 ? (
+            <button 
+              onClick={handlePrev}
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#cbd5e1', padding: '0.6rem 0.8rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', fontSize: '0.85rem' }}
+            >
+              <ChevronLeft size={16} /> <span style={{ display: 'none' }} className="responsive-text">Back</span>
+            </button>
+          ) : (
+            <div style={{ width: '40px' }} />
+          )}
+
+          <div style={{ display: 'flex', gap: '0.35rem', overflowX: 'auto', padding: '0.5rem', flex: 1, justifyContent: 'center' }}>
             {slides.map((_, i) => (
-              <div key={i} style={{ width: i === currentSlide ? '20px' : '6px', height: '6px', borderRadius: '3px', background: i === currentSlide ? 'var(--accent-emerald)' : 'rgba(255,255,255,0.2)', transition: '0.3s' }} />
+              <div key={i} style={{ width: i === currentSlide ? '14px' : '5px', height: '5px', borderRadius: '3px', background: i === currentSlide ? 'var(--accent-emerald)' : 'rgba(255,255,255,0.2)', transition: '0.3s', flexShrink: 0 }} />
             ))}
           </div>
           
           <button 
             className="log-btn primary" 
             onClick={handleNext}
-            style={{ padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap', width: 'auto', fontSize: '0.85rem' }}
           >
-            {currentSlide === slides.length - 1 ? 'Start My Journey' : 'Continue'} <ChevronRight size={18} />
+            {currentSlide === slides.length - 1 ? 'Start' : 'Next'} <ChevronRight size={16} />
           </button>
         </div>
       </div>

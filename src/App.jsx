@@ -11,6 +11,7 @@ import WorkoutTracker from './pages/Workouts/WorkoutTracker';
 import Leaderboard from './pages/Social/Leaderboard';
 import Friends from './pages/Social/Friends';
 import Challenges from './pages/Social/Challenges';
+import Chat from './pages/Social/Chat';
 import CampusMap from './pages/Campus/Map';
 import ProfileSetup from './pages/Onboarding/ProfileSetup';
 import VerifyEmail from './pages/Auth/VerifyEmail';
@@ -57,6 +58,7 @@ const AppContent = () => {
         
         <Route path="/leaderboard" element={user && user.emailVerified ? <Leaderboard /> : <Navigate to="/login" />} />
         <Route path="/friends" element={user && user.emailVerified ? <Friends /> : <Navigate to="/login" />} />
+        <Route path="/chat/:friendId" element={user && user.emailVerified ? <Chat /> : <Navigate to="/login" />} />
         <Route path="/challenges" element={user && user.emailVerified ? <Challenges /> : <Navigate to="/login" />} />
         
         <Route path="/campus" element={user && user.emailVerified ? <CampusMap /> : <Navigate to="/login" />} />

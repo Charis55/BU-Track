@@ -7,13 +7,14 @@ import {
   Award
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { logUserWorkout, getDailyLog } from '../../utils/db';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { WORKOUT_CATEGORIES } from '../../data/workouts';
+import ShareModal from '../../components/ShareModal';
 
 const WorkoutTracker = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { state } = useLocation();
 
   const [activeCategory, setActiveCategory] = useState(WORKOUT_CATEGORIES[0]);
   const [activeSub, setActiveSub] = useState(WORKOUT_CATEGORIES[0].subcategories[0]);
@@ -22,6 +23,7 @@ const WorkoutTracker = () => {
   const [duration, setDuration] = useState(30);
   const [isLogging, setIsLogging] = useState(false);
   const [burnedToday, setBurnedToday] = useState(0);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDaily = async () => {
@@ -31,7 +33,15 @@ const WorkoutTracker = () => {
       }
     };
     fetchDaily();
-  }, [user?.uid]);
+
+    if (state?.sharedWorkout) {
+      setTimeout(() => {
+        setSelectedWorkout(state.sharedWorkout);
+        if (state.sharedWorkout.sharedDuration) setDuration(state.sharedWorkout.sharedDuration);
+        navigate(window.location.pathname, { replace: true, state: {} });
+      }, 300);
+    }
+  }, [user?.uid, state, navigate]);
 
   // Handle category change
   const handleCategorySelect = (cat) => {
@@ -65,7 +75,7 @@ const WorkoutTracker = () => {
   return (
     <div className="workout-container container animate-fade-in">
       <header className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}><ChevronLeft size={20} /> Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">Workout Tracker</h1>
         <div style={{ width: '40px' }} />
       </header>
@@ -193,18 +203,40 @@ const WorkoutTracker = () => {
                     <span>Estimated Burn: <strong>{selectedWorkout.calPerMin * duration} kcal</strong></span>
                   </div>
 
-                  <button 
-                    className="log-btn primary" 
-                    disabled={isLogging} 
-                    onClick={handleLog}
-                    style={{ background: activeCategory.color, marginTop: '1rem', width: '100%' }}
-                  >
-                    {isLogging ? 'Saving Session...' : 'Finish & Log Workout'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                    <button 
+                      type="button"
+                      onClick={() => setShareModalOpen(true)}
+                      style={{ 
+                        flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', color: activeCategory.color, 
+                        border: `1px solid ${activeCategory.color}50`, borderRadius: '0.625rem', cursor: 'pointer', fontWeight: 600
+                      }}
+                    >
+                      Share
+                    </button>
+                    <button 
+                      className="log-btn primary" 
+                      disabled={isLogging} 
+                      onClick={handleLog}
+                      style={{ background: activeCategory.color, flex: 2 }}
+                    >
+                      {isLogging ? 'Saving Session...' : 'Finish & Log Workout'}
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
+
+          {/* Share Modal Wrapper */}
+          {selectedWorkout && (
+            <ShareModal
+              isOpen={shareModalOpen}
+              onClose={() => setShareModalOpen(false)}
+              type="workout"
+              payload={{ ...selectedWorkout, sharedDuration: duration }}
+            />
+          )}
         </section>
 
         <section className="workout-history">

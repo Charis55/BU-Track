@@ -3,6 +3,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   collection, 
   query, 
   where, 
@@ -10,7 +11,8 @@ import {
   orderBy, 
   limit, 
   addDoc,
-  serverTimestamp 
+  serverTimestamp,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -268,12 +270,141 @@ export const getEnrollmentCount = async (challengeId) => {
  * LEADERBOARD LOGIC (v12)
  */
 export const getLeaderboardData = async () => {
-  const q = query(collection(db, USER_COLLECTION), orderBy("points", "desc"), limit(20));
+  const q = query(collection(db, USER_COLLECTION));
   const snap = await getDocs(q);
   const results = [];
   snap.forEach(doc => results.push({ uid: doc.id, ...doc.data() }));
+  results.sort((a, b) => (b.points || 0) - (a.points || 0));
+  return results.slice(0, 20);
+};
+
+export const searchFriends = async (searchQuery) => {
+  const normalizedQuery = searchQuery.trim().replace(/^@/, '').replace(/\s+/g, '').toLowerCase();
+  if (!normalizedQuery) return [];
+  
+  const q = query(collection(db, USER_COLLECTION));
+  const snap = await getDocs(q);
+  const results = [];
+  
+  snap.forEach(doc => {
+    const data = doc.data();
+    const usernameMatch = data.username && String(data.username).toLowerCase().includes(normalizedQuery);
+    const matricMatch = data.matricNumber && String(data.matricNumber).toLowerCase().includes(normalizedQuery);
+    
+    if (usernameMatch || matricMatch) {
+      results.push({ uid: doc.id, ...data });
+    }
+  });
   return results;
 };
+
+/**
+ * FRIEND SYSTEM API
+ */
+
+export const sendFriendRequest = async (currentUid, targetUid) => {
+  if (!currentUid || !targetUid || currentUid === targetUid) return;
+  
+  const sentRef = doc(db, `users/${currentUid}/friendRequests`, targetUid);
+  const pendingRef = doc(db, `users/${targetUid}/friendRequests`, currentUid);
+  
+  await setDoc(sentRef, { status: 'sent', timestamp: serverTimestamp() });
+  await setDoc(pendingRef, { status: 'pending', timestamp: serverTimestamp() });
+};
+
+export const respondToFriendRequest = async (currentUid, targetUid, action) => {
+  const currentReqRef = doc(db, `users/${currentUid}/friendRequests`, targetUid);
+  const targetReqRef = doc(db, `users/${targetUid}/friendRequests`, currentUid);
+  
+  if (action === 'accept') {
+    await updateDoc(currentReqRef, { status: 'accepted', updated_at: serverTimestamp() });
+    await updateDoc(targetReqRef, { status: 'accepted', updated_at: serverTimestamp() });
+  } else if (action === 'reject') {
+    await deleteDoc(currentReqRef);
+    await deleteDoc(targetReqRef);
+  }
+};
+
+export const getFriendRequestsAndFriends = async (currentUid) => {
+  if (!currentUid) return { friends: [], pending: [], sent: [] };
+  
+  const reqSnapshot = await getDocs(collection(db, `users/${currentUid}/friendRequests`));
+  const friends = [];
+  const pending = [];
+  const sent = [];
+  
+  const uidsToFetch = [];
+  
+  reqSnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    uidsToFetch.push({ uid: docSnap.id, status: data.status });
+  });
+
+  if (uidsToFetch.length === 0) return { friends, pending, sent };
+
+  // Fetch user details for each (could be optimized with `in` query if chunked, 
+  // but this is simpler and fine for small DB)
+  await Promise.all(uidsToFetch.map(async (item) => {
+    const uSnap = await getDoc(doc(db, USER_COLLECTION, item.uid));
+    if (uSnap.exists()) {
+      const uData = { uid: item.uid, ...uSnap.data() };
+      if (item.status === 'accepted') friends.push(uData);
+      else if (item.status === 'pending') pending.push(uData);
+      else if (item.status === 'sent') sent.push(uData);
+    }
+  }));
+
+  return { friends, pending, sent };
+};
+
+export const getChatId = (uid1, uid2) => {
+  return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
+};
+
+export const subscribeToChat = (currentUid, friendUid, callback) => {
+  if (!currentUid || !friendUid) return () => {};
+  const chatId = getChatId(currentUid, friendUid);
+  const q = query(
+    collection(db, `chats/${chatId}/messages`),
+    orderBy('timestamp', 'asc')
+  );
+  return onSnapshot(q, (snapshot) => {
+    const messages = [];
+    snapshot.forEach(docSnap => messages.push({ id: docSnap.id, ...docSnap.data() }));
+    callback(messages);
+  });
+};
+
+export const sendMessage = async (currentUid, friendUid, text, type = 'text', payload = null) => {
+  if (!text || !text.trim()) return;
+  const chatId = getChatId(currentUid, friendUid);
+  await addDoc(collection(db, `chats/${chatId}/messages`), {
+    senderId: currentUid,
+    text: text.trim(),
+    type,
+    payload,
+    timestamp: serverTimestamp(),
+    read: false
+  });
+};
+
+export const markMessagesAsRead = async (currentUid, friendUid) => {
+  if (!currentUid || !friendUid) return;
+  const chatId = getChatId(currentUid, friendUid);
+  const q = query(
+    collection(db, `chats/${chatId}/messages`),
+    where('senderId', '==', friendUid),
+    where('read', '==', false)
+  );
+  const snap = await getDocs(q);
+  // Can just iterate updates without Promise.all since it's firestore cache queue
+  snap.forEach(documentSnap => {
+    updateDoc(doc(db, `chats/${chatId}/messages`, documentSnap.id), {
+      read: true
+    });
+  });
+};
+
 
 export const getCourseLeaderboardData = async () => {
   const q = query(collection(db, USER_COLLECTION));

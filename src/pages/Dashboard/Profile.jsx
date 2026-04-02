@@ -12,20 +12,24 @@ import {
   Trophy,
   ShieldAlert,
   Key,
-  Activity
+  Activity,
+  LogOut,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COURSES } from '../../utils/courses';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Profile = () => {
-  const { user, resetPassword } = useAuth();
+  const { user, resetPassword, logout, deleteAccount } = useAuth();
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -89,6 +93,32 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      setError("Failed to logout");
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDelete = async () => {
+    try {
+      await deleteAccount();
+      navigate('/login');
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+        setError("For security, please log out and log back in before deleting your account.");
+      } else {
+        setError("Failed to delete account. You may need to sign in again first.");
+      }
+    }
+  };
+
   const retriggerTutorial = async () => {
     try {
       const userRef = doc(db, "users", user.uid);
@@ -101,8 +131,18 @@ const Profile = () => {
 
   return (
     <div className="profile-container container animate-fade-in">
+      <ConfirmModal 
+         isOpen={showDeleteConfirm} 
+         onClose={() => setShowDeleteConfirm(false)} 
+         onConfirm={executeDelete} 
+         title="Delete Built Profile?" 
+         message="Are you sure you want to completely erase your campus ecosystem account? This action is strictly permanent and cannot be undone." 
+         confirmText="Erase"
+         danger={true} 
+      />
+
       <header className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}><ChevronLeft size={20} /> Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">Profile Settings</h1>
         <div style={{ width: '40px' }} />
       </header>
@@ -139,6 +179,18 @@ const Profile = () => {
 
           {message && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card" style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }}>{message}</motion.div>}
           {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card" style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.3)' }}>{error}</motion.div>}
+
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }} className="glass-card" style={{ padding: '1.5rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', color: '#ef4444' }}><ShieldAlert size={18} /> Danger Zone</h3>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <button type="button" onClick={handleLogout} className="toggle-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.05)', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <LogOut size={16} /> Secure Logout
+              </button>
+              <button type="button" onClick={handleDeleteAccount} className="toggle-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <Trash2 size={16} /> Delete Account Permanently
+              </button>
+            </div>
+          </motion.div>
         </div>
 
         {/* Right Column: Editable Details */}

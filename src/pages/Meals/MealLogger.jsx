@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Utensils, ChevronLeft, X, Edit3, Check, Flame, Beef, Wheat, Droplets } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { logUserMeal, getDailyLog } from '../../utils/db';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import ShareModal from '../../components/ShareModal';
 
 const NIGERIAN_FOODS = [
   // Rice dishes
@@ -76,12 +76,14 @@ const CATEGORIES = [...new Set(NIGERIAN_FOODS.map(f => f.category))];
 const MealLogger = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { state } = useLocation();
   const [search, setSearch] = useState('');
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [totalToday, setTotalToday] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [customFood, setCustomFood] = useState({ name: '', calories: '', carbs: '', protein: '', fat: '' });
   const calGoal = 2400;
 
@@ -93,7 +95,17 @@ const MealLogger = () => {
       }
     };
     fetchDaily();
-  }, [user?.uid]);
+    
+    // Auto-load shared meal if routed via Chat
+    if (state?.sharedMeal) {
+      setTimeout(() => {
+        setSearch(state.sharedMeal.name);
+        setSelectedMeal(state.sharedMeal);
+        // Clean state so it doesn't loop heavily
+        navigate(window.location.pathname, { replace: true, state: {} });
+      }, 300);
+    }
+  }, [user?.uid, state, navigate]);
 
   const filteredFoods = NIGERIAN_FOODS.filter(f => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
@@ -154,7 +166,7 @@ const MealLogger = () => {
   return (
     <div className="meal-container container animate-fade-in">
       <header className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}><ChevronLeft size={20} /> Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">Log Your Meal</h1>
         <div style={{ width: '40px' }} />
       </header>
@@ -308,26 +320,52 @@ const MealLogger = () => {
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03, duration: 0.3 }}
-                  whileHover={{ x: 4 }}
-                  className="glass-card food-item"
+                  whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.06)' }}
                   onClick={() => setSelectedMeal(food)}
-                  style={{ position: 'relative' }}
+                  style={{ 
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '1.25rem 1.5rem',
+                    marginBottom: '1rem',
+                    cursor: 'pointer',
+                    borderRadius: '1.25rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    minHeight: '85px',
+                    height: 'auto',
+                    overflow: 'visible'
+                  }}
                 >
-                  <div className="food-info">
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.15rem' }}>{food.name}</h4>
-                    <p className="text-muted" style={{ fontSize: '0.8rem' }}>
-                      {food.calories} kcal / {food.unit}
-                      <span style={{ marginLeft: '0.5rem', color: 'rgba(255,255,255,0.15)' }}>•</span>
-                      <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>{food.category}</span>
-                    </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '45px', height: '45px', borderRadius: '12px',
+                      background: 'rgba(16,185,129,0.15)', color: '#10b981',
+                      flexShrink: 0
+                    }}>
+                      <Utensils size={20} />
+                    </div>
+                    <div className="food-info" style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 600, margin: 0, color: '#f8fafc', letterSpacing: '0.3px', lineHeight: '1.2' }}>{food.name}</h4>
+                      <p className="text-muted" style={{ fontSize: '0.85rem', margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', lineHeight: '1.2' }}>
+                        <span style={{ color: '#cbd5e1' }}>{food.calories} kcal</span>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                        <span style={{ color: '#94a3b8' }}>per {food.unit}</span>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                        <span style={{ color: '#f59e0b', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', background: 'rgba(245, 158, 11, 0.15)', padding: '2px 6px', borderRadius: '6px' }}>{food.category}</span>
+                      </p>
+                    </div>
                   </div>
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
-                    flexShrink: 0
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    background: '#10b981', color: 'white',
+                    flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.4)', transition: 'all 0.2s'
                   }}>
-                    <Plus size={16} style={{ color: 'var(--accent-emerald)' }} />
+                    <Plus size={18} />
                   </div>
                 </motion.div>
               ))}
@@ -446,25 +484,50 @@ const MealLogger = () => {
                 Per {selectedMeal.unit} • {selectedMeal.category}
               </div>
 
-              <button
-                disabled={isLogging}
-                onClick={() => handleAddMeal(selectedMeal)}
-                style={{
-                  width: '100%', padding: '1rem',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white', borderRadius: '0.875rem', fontWeight: 700, border: 'none',
-                  cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
-                  boxShadow: '0 4px 20px rgba(16,185,129,0.3)',
-                  transition: 'all 0.2s',
-                  opacity: isLogging ? 0.6 : 1
-                }}
-              >
-                {isLogging ? 'Logging...' : `Add ${selectedMeal.calories} kcal to Daily Log`}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(true)}
+                  style={{
+                    flex: 1, padding: '1rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: '#10b981', borderRadius: '0.875rem', fontWeight: 600, border: '1px solid rgba(16,185,129,0.3)',
+                    cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'inherit',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Share Setup
+                </button>
+                <button
+                  disabled={isLogging}
+                  onClick={() => handleAddMeal(selectedMeal)}
+                  style={{
+                    flex: 2, padding: '1rem',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white', borderRadius: '0.875rem', fontWeight: 700, border: 'none',
+                    cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit',
+                    boxShadow: '0 4px 20px rgba(16,185,129,0.3)',
+                    transition: 'all 0.2s',
+                    opacity: isLogging ? 0.6 : 1
+                  }}
+                >
+                  {isLogging ? 'Logging...' : `Add ${selectedMeal.calories} kcal`}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Share Modal */}
+      {selectedMeal && (
+         <ShareModal 
+           isOpen={shareModalOpen} 
+           onClose={() => setShareModalOpen(false)} 
+           type="meal" 
+           payload={selectedMeal} 
+         />
+      )}
     </div>
   );
 };

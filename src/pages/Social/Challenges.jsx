@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, ChevronLeft, Flag, Users, Clock, Zap, Calendar, Heart } from 'lucide-react';
+import { Trophy, ChevronLeft, Flag, Users, Clock, Zap, Calendar, Heart, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import ShareModal from '../../components/ShareModal';
 import { 
   getDailyChallenges, 
   enrollInChallenge, 
@@ -15,6 +16,7 @@ const ChallengeCard = ({ challenge, user }) => {
   const [count, setCount] = useState(0);
   const [enrolled, setEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,15 +77,33 @@ const ChallengeCard = ({ challenge, user }) => {
             )}
           </div>
         </div>
-        <button 
-          onClick={handleEnroll} 
-          disabled={enrolled}
-          className={`log-btn ${enrolled ? 'secondary' : 'primary'}`}
-          style={{ width: 'auto', padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
-        >
-          {enrolled ? 'See You There' : 'Join Session'}
-        </button>
+        
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            onClick={() => setShareModalOpen(true)}
+            style={{ 
+              background: 'rgba(255,255,255,0.05)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '8px', padding: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' 
+            }}
+          >
+            <Share2 size={16} />
+          </button>
+          <button 
+            onClick={handleEnroll} 
+            disabled={enrolled}
+            className={`log-btn ${enrolled ? 'secondary' : 'primary'}`}
+            style={{ width: 'auto', padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
+          >
+            {enrolled ? 'See You There' : 'Join Session'}
+          </button>
+        </div>
       </div>
+      <ShareModal 
+        isOpen={shareModalOpen} 
+        onClose={() => setShareModalOpen(false)} 
+        type="challenge" 
+        payload={challenge} 
+      />
     </motion.div>
   );
 };
@@ -102,7 +122,7 @@ const Challenges = () => {
   return (
     <div className="container animate-fade-in" style={{ paddingBottom: '100px' }}>
       <header className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}><ChevronLeft size={20} /> Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">Campus Challenges</h1>
         <div style={{ width: '40px' }} />
       </header>

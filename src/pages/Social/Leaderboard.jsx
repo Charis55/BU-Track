@@ -38,7 +38,7 @@ const Leaderboard = () => {
   return (
     <div className="leaderboard-container container animate-fade-in">
       <header className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}><ChevronLeft size={20} /> Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={20} /> Back</button>
         <h1 className="glow-emerald">The Semester Cup</h1>
         <div style={{ width: '40px' }} />
       </header>
@@ -56,7 +56,7 @@ const Leaderboard = () => {
           </div>
           <div>
             <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff' }}>Semester Prizes Unlocked</h4>
-            <p className="text-secondary" style={{ fontSize: '0.75rem', margin: '0.2rem 0 0' }}>Top 10 Students & Course win Free Gym & Meal Discounts</p>
+            <p className="text-secondary" style={{ fontSize: '0.75rem', margin: '0.2rem 0 0' }}>#1 Student & Course win Free Gym & Meal Discounts</p>
           </div>
         </div>
       </motion.div>
