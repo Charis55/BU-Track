@@ -14,7 +14,9 @@ import {
   Utensils,
   Dumbbell,
   MessageCircle,
-  Share2
+  Share2,
+  ShieldCheck,
+  Route
 } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -37,6 +39,18 @@ const slides = [
     desc: "Jump into the Workouts tab to log exercises. Select specific campus activities and strict calisthenics, set your duration, and the system automatically calculates your calorie burn.",
     icon: <Dumbbell size={48} color="#3b82f6" />,
     color: "#3b82f6"
+  },
+  {
+    title: "GPS Anti-Cheat System",
+    desc: "To ensure fair play on the leaderboards, BU-Track uses strict GPS verification. You must physically be within a 200m radius of the correct campus facility (like the Stadium or Guest House) to log your workout.",
+    icon: <ShieldCheck size={48} color="#ef4444" />,
+    color: "#ef4444"
+  },
+  {
+    title: "Campus Jogging Routes",
+    desc: "Hitting the road? Choose from 5 custom jogging routes around the Babcock campus. You must be at the exact starting point to begin a run. We automatically adjust your estimated burn based on the route's difficulty!",
+    icon: <Route size={48} color="#10b981" />,
+    color: "#10b981"
   },
   {
     title: "Build Your Circle",
