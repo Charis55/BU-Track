@@ -1,0 +1,296 @@
+[
+  {
+    "name": "BU Mall",
+    "lat": 6.8912348,
+    "lng": 3.7204419,
+    "type": "unknown"
+  },
+  {
+    "name": "Babcock Guest House",
+    "lat": 6.8905112,
+    "lng": 3.7199223,
+    "type": "unknown"
+  },
+  {
+    "name": "New Horizon",
+    "lat": 6.8903438,
+    "lng": 3.723179,
+    "type": "unknown"
+  },
+  {
+    "name": "Neal Wilson Hall",
+    "lat": 6.8930534,
+    "lng": 3.7217164,
+    "type": "unknown"
+  },
+  {
+    "name": "School Cafeteria",
+    "lat": 6.8926805,
+    "lng": 3.7236058,
+    "type": "fast_food"
+  },
+  {
+    "name": "Amphitheatre",
+    "lat": 6.8908778,
+    "lng": 3.7224233,
+    "type": "theatre"
+  },
+  {
+    "name": "Winslow Hall",
+    "lat": 6.8940085,
+    "lng": 3.7216602,
+    "type": "unknown"
+  },
+  {
+    "name": "Bursary",
+    "lat": 6.8901032,
+    "lng": 3.7228895,
+    "type": "unknown"
+  },
+  {
+    "name": "Gideon Troopers Hall",
+    "lat": 6.8944243,
+    "lng": 3.7224928,
+    "type": "unknown"
+  },
+  {
+    "name": "Bethel Splendor Hall",
+    "lat": 6.8946086,
+    "lng": 3.7230729,
+    "type": "unknown"
+  },
+  {
+    "name": "Samuel Akande Hall",
+    "lat": 6.8941305,
+    "lng": 3.7236374,
+    "type": "unknown"
+  },
+  {
+    "name": "Nelson Mandela Hall",
+    "lat": 6.8934727,
+    "lng": 3.7230408,
+    "type": "unknown"
+  },
+  {
+    "name": "Queen Esther",
+    "lat": 6.8929791,
+    "lng": 3.7247012,
+    "type": "unknown"
+  },
+  {
+    "name": "Felicia Adebisi Dada",
+    "lat": 6.8936738,
+    "lng": 3.7249784,
+    "type": "unknown"
+  },
+  {
+    "name": "BUSA House",
+    "lat": 6.8920535,
+    "lng": 3.7237593,
+    "type": "unknown"
+  },
+  {
+    "name": "Nyberg Hall",
+    "lat": 6.8925971,
+    "lng": 3.7253785,
+    "type": "unknown"
+  },
+  {
+    "name": "Crystal Hall",
+    "lat": 6.8928556,
+    "lng": 3.7277415,
+    "type": "unknown"
+  },
+  {
+    "name": "Platinum Hall",
+    "lat": 6.8924519,
+    "lng": 3.7274199,
+    "type": "unknown"
+  },
+  {
+    "name": "Diamond Hall",
+    "lat": 6.892117,
+    "lng": 3.7271929,
+    "type": "unknown"
+  },
+  {
+    "name": "Ogden Hall",
+    "lat": 6.8928285,
+    "lng": 3.726381,
+    "type": "unknown"
+  },
+  {
+    "name": "BBS Babcock Business School",
+    "lat": 6.890815,
+    "lng": 3.7239076,
+    "type": "university"
+  },
+  {
+    "name": "Science and Technology",
+    "lat": 6.8887163,
+    "lng": 3.7225462,
+    "type": "school"
+  },
+  {
+    "name": "Senate Building",
+    "lat": 6.8888398,
+    "lng": 3.7218848,
+    "type": "unknown"
+  },
+  {
+    "name": "Main Gate",
+    "lat": 6.8890757,
+    "lng": 3.7200411,
+    "type": "unknown"
+  },
+  {
+    "name": "White Hall",
+    "lat": 6.8937701,
+    "lng": 3.7263304,
+    "type": "unknown"
+  },
+  {
+    "name": "Stadium Babcock University",
+    "lat": 6.8947221,
+    "lng": 3.7277028,
+    "type": "unknown"
+  },
+  {
+    "name": "Seventh Day Adventist Church",
+    "lat": 6.8896079,
+    "lng": 3.7195952,
+    "type": "place_of_worship"
+  },
+  {
+    "name": "Banks Cluster",
+    "lat": 6.8907987,
+    "lng": 3.7207362,
+    "type": "bank"
+  },
+  {
+    "name": "Welch Hall",
+    "lat": 6.8917506,
+    "lng": 3.7214357,
+    "type": "unknown"
+  },
+  {
+    "name": "Laz Otti Library",
+    "lat": 6.8921563,
+    "lng": 3.7223333,
+    "type": "library"
+  },
+  {
+    "name": "Adeleke Hall",
+    "lat": 6.8928003,
+    "lng": 3.7211487,
+    "type": "unknown"
+  },
+  {
+    "name": "Topaz Hall",
+    "lat": 6.8934622,
+    "lng": 3.7206117,
+    "type": "unknown"
+  },
+  {
+    "name": "Ameyo Adadevoh Hall",
+    "lat": 6.8949448,
+    "lng": 3.7249274,
+    "type": "unknown"
+  },
+  {
+    "name": "Havilah Gold Hall",
+    "lat": 6.8948787,
+    "lng": 3.7260748,
+    "type": "unknown"
+  },
+  {
+    "name": "Basketball Court BU",
+    "lat": 6.8939333,
+    "lng": 3.7284146,
+    "type": "unknown"
+  },
+  {
+    "name": "BU Highschool",
+    "lat": 6.8901123,
+    "lng": 3.7189709,
+    "type": "school"
+  },
+  {
+    "name": "Emerald Hall",
+    "lat": 6.8937019,
+    "lng": 3.7199852,
+    "type": "unknown"
+  },
+  {
+    "name": "Babcock University",
+    "lat": 6.8899965,
+    "lng": 3.722967,
+    "type": "unknown"
+  },
+  {
+    "name": "BUSA",
+    "lat": 6.8921226,
+    "lng": 3.7240037,
+    "type": "yes"
+  },
+  {
+    "name": "BUTH",
+    "lat": 6.8918141,
+    "lng": 3.718502,
+    "type": "yes"
+  },
+  {
+    "name": "BuCodel",
+    "lat": 6.8916531,
+    "lng": 3.7233634,
+    "type": "yes"
+  },
+  {
+    "name": "BUTH 600",
+    "lat": 6.8912597,
+    "lng": 3.7169393,
+    "type": "yes"
+  },
+  {
+    "name": "Academic Building",
+    "lat": 6.8914373,
+    "lng": 3.7229773,
+    "type": "yes"
+  },
+  {
+    "name": "EAH",
+    "lat": 6.8902277,
+    "lng": 3.7205721,
+    "type": "yes"
+  },
+  {
+    "name": "Emerald Hall",
+    "lat": 6.8940243,
+    "lng": 3.7197042,
+    "type": "yes"
+  },
+  {
+    "name": "Topaz Activity Hall",
+    "lat": 6.8937649,
+    "lng": 3.7202766,
+    "type": "yes"
+  },
+  {
+    "name": "Topaz Hall",
+    "lat": 6.893688,
+    "lng": 3.7205666,
+    "type": "unknown"
+  },
+  {
+    "name": "EAH entrance",
+    "lat": 6.8901761,
+    "lng": 3.7209518,
+    "type": "unknown"
+  },
+  {
+    "name": "Andrews Park",
+    "lat": 6.8873805,
+    "lng": 3.7213475,
+    "type": "unknown"
+  }
+]

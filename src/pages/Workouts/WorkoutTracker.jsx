@@ -4,14 +4,169 @@ import {
   Flame, 
   ChevronLeft,
   TrendingUp,
-  Award
+  Award,
+  Route,
+  Timer,
+  MapPin,
+  CheckCircle,
+  Circle,
+  ChevronRight,
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { WORKOUT_CATEGORIES } from '../../data/workouts';
+import { JOGGING_ROUTES, OUTDOOR_CARDIO_SUB_IDS } from '../../data/jogRoutes';
 import { getDailyLog, logUserWorkout, calculateUserBiometrics } from '../../utils/db';
 import ShareModal from '../../components/ShareModal';
+import LocationCheckModal from '../../components/LocationCheckModal';
+import { verifyWorkoutLocation, getRuleKey } from '../../utils/locationVerify';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Route Picker Panel — shown when an outdoor cardio workout is selected
+// ─────────────────────────────────────────────────────────────────────────────
+function RoutePicker({ workout, onSelectRoute, selectedRoute, onClear, accentColor }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div>
+          <h4 style={{ color: '#f1f5f9', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <MapPin size={16} style={{ color: accentColor }} /> Choose a Campus Route
+          </h4>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            Pick your jogging route — checkpoints will motivate you at 25%, 50%, 75% &amp; 100%
+          </p>
+        </div>
+        {selectedRoute && (
+          <button
+            onClick={onClear}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: 'var(--text-muted)' }}
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {JOGGING_ROUTES.map(route => {
+          const isActive = selectedRoute?.id === route.id;
+          return (
+            <motion.button
+              key={route.id}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => onSelectRoute(isActive ? null : route)}
+              style={{
+                background: isActive ? `${route.color}12` : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isActive ? route.color : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: '1rem',
+                padding: '0',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                textAlign: 'left',
+                boxShadow: isActive ? `0 0 20px ${route.color}30` : 'none',
+                transition: 'all 0.25s ease',
+              }}
+            >
+              {/* Colour stripe */}
+              <div style={{ height: '3px', background: route.color, opacity: 0.8 }} />
+
+              <div style={{ padding: '0.875rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div>
+                    <span style={{ color: '#f1f5f9', fontWeight: 800, fontSize: '0.9rem' }}>{route.name}</span>
+                    <span style={{
+                      marginLeft: '0.5rem',
+                      padding: '0.1rem 0.45rem',
+                      borderRadius: '20px',
+                      fontSize: '0.6rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      background: route.difficulty === 'Easy' ? 'rgba(16,185,129,0.15)' : route.difficulty === 'Moderate' ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)',
+                      color: route.difficulty === 'Easy' ? '#10b981' : route.difficulty === 'Moderate' ? '#60a5fa' : '#f87171',
+                    }}>
+                      {route.difficulty}
+                    </span>
+                  </div>
+                  <ChevronRight size={16} style={{ color: route.color, opacity: isActive ? 1 : 0.3, transform: isActive ? 'rotate(90deg)' : 'none', transition: 'all 0.25s' }} />
+                </div>
+
+                {/* Stats strip */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: isActive ? '0.875rem' : '0' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    <Route size={12} style={{ color: route.color }} /> {route.distance}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    <Timer size={12} style={{ color: route.color }} /> {route.time}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    <Flame size={12} style={{ color: route.color }} /> {route.calories}
+                  </span>
+                </div>
+
+                {/* Checkpoint breakdown (expanded when active) */}
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{
+                        background: 'rgba(0,0,0,0.25)',
+                        borderRadius: '0.75rem',
+                        padding: '0.75rem',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                      }}>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
+                          Checkpoints
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {route.checkpoints.map((cp, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                              <div style={{
+                                width: '32px', height: '32px', borderRadius: '50%',
+                                background: `${route.color}20`,
+                                border: `1.5px solid ${route.color}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.65rem', fontWeight: 900, color: route.color,
+                                flexShrink: 0,
+                              }}>
+                                {cp.pct}%
+                              </div>
+                              <div>
+                                <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+                                  {cp.emoji} {cp.label}
+                                </p>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>{cp.note}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main WorkoutTracker component
+// ─────────────────────────────────────────────────────────────────────────────
 const WorkoutTracker = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -20,12 +175,20 @@ const WorkoutTracker = () => {
   const [activeCategory, setActiveCategory] = useState(WORKOUT_CATEGORIES[0]);
   const [activeSub, setActiveSub] = useState(WORKOUT_CATEGORIES[0].subcategories[0]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [selectedRoute, setSelectedRoute] = useState(null);
   
   const [duration, setDuration] = useState(30);
   const [isLogging, setIsLogging] = useState(false);
   const [burnedToday, setBurnedToday] = useState(0);
   const [burnGoal, setBurnGoal] = useState(500);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Location verification state
+  const [locCheck, setLocCheck] = useState(null);
+  // locCheck shape: { status, distanceM, nearestVenue, hint } | null
+
+  // True when the user is on an outdoor cardio subcategory
+  const isOutdoorCardio = OUTDOOR_CARDIO_SUB_IDS.includes(activeSub.id);
 
   useEffect(() => {
     if (user?.profile) {
@@ -52,34 +215,98 @@ const WorkoutTracker = () => {
     }
   }, [user?.uid, state, navigate]);
 
-  // Handle category change
   const handleCategorySelect = (cat) => {
     setActiveCategory(cat);
-    setActiveSub(cat.subcategories[0]); // auto-select first sub
+    setActiveSub(cat.subcategories[0]);
     setSelectedWorkout(null);
+    setSelectedRoute(null);
   };
 
+  // When a route is selected, sync duration to the route's estimated time
+  const handleSelectRoute = (route) => {
+    setSelectedRoute(route);
+    if (route) setDuration(route.timeMin);
+  };
+
+  // Phase 1: Verify location, then phase 2: actually save
   const handleLog = async () => {
     if (!selectedWorkout || !user?.uid) return;
+
+    const ruleKey = getRuleKey(activeCategory.id, activeSub.id, selectedWorkout.id);
+
+    // Yoga / no-check workouts skip verification entirely
+    if (ruleKey === 'anywhere') {
+      await commitLog();
+      return;
+    }
+
+    // Show the checking spinner
+    setLocCheck({ status: 'checking', distanceM: null, nearestVenue: null, hint: null });
+
+    const result = await verifyWorkoutLocation(
+      activeCategory.id,
+      activeSub.id,
+      selectedWorkout.id,
+      selectedRoute
+    );
+
+    if (result.status === 'verified') {
+      setLocCheck(result);
+      // Auto-dismiss and log after brief success display
+      setTimeout(async () => {
+        setLocCheck(null);
+        await commitLog();
+      }, 1500);
+    } else if (result.status === 'no_check') {
+      setLocCheck(null);
+      await commitLog();
+    } else {
+      // out_of_range | permission_denied | unavailable — show modal for user decision
+      setLocCheck(result);
+    }
+  };
+
+  // The actual Firestore write — called directly or after user overrides location check
+  const commitLog = async () => {
+    if (!selectedWorkout || !user?.uid) return;
     setIsLogging(true);
-    const calories = selectedWorkout.calPerMin * duration;
-    
+    const calories = Math.round(
+      selectedRoute
+        ? selectedRoute.calPerMin * duration
+        : selectedWorkout.calPerMin * duration
+    );
     try {
       await logUserWorkout(user.uid, {
-        name: selectedWorkout.name,
+        name: selectedRoute
+          ? `${selectedWorkout.name} — ${selectedRoute.name}`
+          : selectedWorkout.name,
         duration,
         calories,
-        type: selectedWorkout.id
+        type: selectedWorkout.id,
+        locationVerified: locCheck?.status === 'verified',
+        ...(selectedRoute && { routeId: selectedRoute.id, routeName: selectedRoute.name }),
       });
       setBurnedToday(prev => prev + calories);
       setSelectedWorkout(null);
+      setSelectedRoute(null);
       setDuration(30);
     } catch (err) {
-      console.error("Error logging workout:", err);
+      console.error('Error logging workout:', err);
     } finally {
       setIsLogging(false);
     }
   };
+
+  const estCalories = Math.round(
+    selectedRoute
+      ? selectedRoute.calPerMin * duration
+      : (selectedWorkout?.calPerMin ?? 0) * duration
+  );
+
+  // Determine if the selected workout requires a location check
+  const needsLocationCheck = selectedWorkout
+    ? getRuleKey(activeCategory.id, activeSub.id, selectedWorkout.id) !== 'anywhere'
+    : false;
 
   return (
     <div className="workout-container container animate-fade-in">
@@ -131,6 +358,7 @@ const WorkoutTracker = () => {
                     onClick={() => {
                       setActiveSub(sub);
                       setSelectedWorkout(null);
+                      setSelectedRoute(null);
                     }}
                     style={{
                       paddingBottom: '0.75rem',
@@ -151,7 +379,7 @@ const WorkoutTracker = () => {
               </div>
             )}
 
-            {/* Workouts Grid for active Subcategory */}
+            {/* Workouts Grid */}
             <AnimatePresence mode="wait">
               <motion.div 
                 key={activeSub.id}
@@ -171,7 +399,10 @@ const WorkoutTracker = () => {
                   <button 
                     key={workout.id} 
                     className={`type-btn ${selectedWorkout?.id === workout.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedWorkout(workout)}
+                    onClick={() => {
+                      setSelectedWorkout(workout);
+                      setSelectedRoute(null); // reset route on new workout pick
+                    }}
                     style={{
                       background: selectedWorkout?.id === workout.id ? `${activeCategory.color}15` : 'rgba(255,255,255,0.04)',
                       borderColor: selectedWorkout?.id === workout.id ? activeCategory.color : 'rgba(255,255,255,0.1)',
@@ -179,13 +410,13 @@ const WorkoutTracker = () => {
                     }}
                   >
                     <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.5rem' }}>{workout.icon}</div>
-                    <span style={{ fontSize: '0.85rem', lineHeight: '1.2', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{workout.name}</span>
+                    <span style={{ fontSize: '0.85rem', lineHeight: '1.3', width: '100%', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal' }}>{workout.name}</span>
                   </button>
                 ))}
               </motion.div>
             </AnimatePresence>
 
-            {/* Logging Setup Modal/Drawer */}
+            {/* Logging Setup */}
             <AnimatePresence>
               {selectedWorkout && (
                 <motion.div 
@@ -195,9 +426,27 @@ const WorkoutTracker = () => {
                   className="setup-details" 
                   style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)' }}
                 >
-                  <h4 style={{ color: '#f1f5f9', marginBottom: '1rem' }}>Logging: {selectedWorkout.name}</h4>
-                  
-                  <div className="input-field">
+                  <h4 style={{ color: '#f1f5f9', marginBottom: '1rem' }}>
+                    Logging: {selectedWorkout.name}
+                    {selectedRoute && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, marginLeft: '0.5rem' }}>
+                        · {selectedRoute.name}
+                      </span>
+                    )}
+                  </h4>
+
+                  {/* ── ROUTE PICKER (only for outdoor cardio) ── */}
+                  {isOutdoorCardio && (
+                    <RoutePicker
+                      workout={selectedWorkout}
+                      selectedRoute={selectedRoute}
+                      onSelectRoute={handleSelectRoute}
+                      onClear={() => { setSelectedRoute(null); setDuration(30); }}
+                      accentColor={activeCategory.color}
+                    />
+                  )}
+
+                  <div className="input-field" style={{ marginTop: '1.5rem' }}>
                     <label>Duration (minutes)</label>
                     <div className="range-container">
                       <input 
@@ -213,7 +462,7 @@ const WorkoutTracker = () => {
                   
                   <div className="est-calories glass-card" style={{ background: 'rgba(0,0,0,0.3)', marginTop: '1rem' }}>
                     <Flame size={20} className="gold-text" />
-                    <span>Estimated Burn: <strong>{selectedWorkout.calPerMin * duration} kcal</strong></span>
+                    <span>Estimated Burn: <strong>{estCalories} kcal</strong></span>
                   </div>
 
                   <div className="drawer-actions">
@@ -232,17 +481,27 @@ const WorkoutTracker = () => {
                       className="log-btn primary" 
                       disabled={isLogging} 
                       onClick={handleLog}
-                      style={{ background: activeCategory.color, flex: 2, minHeight: '48px' }}
+                      style={{ background: activeCategory.color, flex: 2, minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      {isLogging ? 'Saving...' : 'Finish & Log Workout'}
+                      {isLogging ? 'Saving…' : (
+                        <>
+                          {needsLocationCheck && <ShieldCheck size={16} />}
+                          {needsLocationCheck ? 'Verify & Log Workout' : 'Finish & Log Workout'}
+                        </>
+                      )}
                     </button>
                   </div>
+                  {needsLocationCheck && (
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                      <ShieldCheck size={11} /> GPS location will be checked before saving
+                    </p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Share Modal Wrapper */}
+          {/* Share Modal */}
           {selectedWorkout && (
             <ShareModal
               isOpen={shareModalOpen}
@@ -279,6 +538,25 @@ const WorkoutTracker = () => {
           </div>
         </section>
       </div>
+
+      {/* ── LOCATION VERIFICATION MODAL ── */}
+      <LocationCheckModal
+        status={locCheck?.status ?? null}
+        distanceM={locCheck?.distanceM}
+        nearestVenue={locCheck?.nearestVenue}
+        hint={locCheck?.hint}
+        onConfirm={async () => {
+          setLocCheck(null);
+          await commitLog();
+        }}
+        onCancel={() => setLocCheck(null)}
+      />
+
+      {/* Spin animation */}
+      <style>{`
+        @keyframes loc-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .loc-spin { animation: loc-spin 1s linear infinite; }
+      `}</style>
     </div>
   );
 };

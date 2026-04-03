@@ -23,13 +23,8 @@ export const AuthProvider = ({ children }) => {
     let unsubscribeProfile = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        // Initial user state before profile syncs
-        setUser({ uid: firebaseUser.uid, email: firebaseUser.email, emailVerified: firebaseUser.emailVerified });
-        
-        // Ensure UI renders immediately even if profile takes a moment to sync
-        setLoading(false);
-
-        // Listen for real-time profile updates in the background
+        // Listen for real-time profile updates — wait for first snapshot before rendering
+        let firstSnapshot = true;
         unsubscribeProfile = onSnapshot(doc(db, "users", firebaseUser.uid), (docSnap) => {
           const userData = {
             uid: firebaseUser.uid,
@@ -40,9 +35,19 @@ export const AuthProvider = ({ children }) => {
             profile: docSnap.exists() ? docSnap.data() : null
           };
           setUser(userData);
+          // Only mark loading done after the profile has been resolved at least once
+          if (firstSnapshot) {
+            firstSnapshot = false;
+            setLoading(false);
+          }
         }, (error) => {
           console.error("Profile sync error:", error);
-          // Already called setLoading(false) above
+          // Unblock the app even if profile fetch fails
+          if (firstSnapshot) {
+            firstSnapshot = false;
+            setUser({ uid: firebaseUser.uid, email: firebaseUser.email, emailVerified: firebaseUser.emailVerified });
+            setLoading(false);
+          }
         });
       } else {
         if (unsubscribeProfile) unsubscribeProfile();
