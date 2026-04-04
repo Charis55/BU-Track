@@ -179,7 +179,7 @@ body::after {
   gap: 1rem;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .responsive-grid-2 {
     grid-template-columns: 1fr;
   }
@@ -273,10 +273,11 @@ body::after {
 .login-form { display: flex; flex-direction: column; gap: 0.875rem; }
 .input-group { position: relative; }
 .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1; }
+.input-icon + input { padding-left: 3rem; }
 
 input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
+  padding: 0.875rem 1.25rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
   border-radius: 0.875rem;

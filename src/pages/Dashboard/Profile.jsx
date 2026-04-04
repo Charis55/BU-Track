@@ -160,7 +160,7 @@ const Profile = () => {
             
             <div className="input-group" style={{ textAlign: 'left' }}>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={14}/> Babcock Email</label>
-              <input type="text" value={user?.email} readOnly style={{ width: '100%', cursor: 'not-allowed', color: 'var(--text-muted)', opacity: 0.8, fontSize: '16px' }} />
+              <input type="text" value={user?.email} readOnly style={{ cursor: 'not-allowed', color: 'var(--text-muted)', opacity: 0.8, fontSize: '16px' }} />
               <p style={{ margin: '0.4rem 0 0', fontSize: '0.7rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>Verified Student Status</p>
             </div>
           </motion.div>
@@ -202,19 +202,19 @@ const Profile = () => {
           </div>
 
           <div className="responsive-grid-2" style={{ gap: '1.25rem' }}>
-            <div className="input-group">
+            <div className="input-group" style={{ gridColumn: '1 / -1' }}>
               <label>Full Name</label>
               <input type="text" value={formData.displayName} onChange={e => setFormData({...formData, displayName: e.target.value})} style={{ fontSize: '16px' }} />
+            </div>
+            <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+              <label><Hash size={16}/> Matric Number</label>
+              <input type="text" value={formData.matric} onChange={e => setFormData({...formData, matric: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
               <label>User Handle</label>
               <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} style={{ fontSize: '16px' }} />
             </div>
             <div className="input-group">
-              <label><Hash size={16}/> Matric Number</label>
-              <input type="text" value={formData.matric} onChange={e => setFormData({...formData, matric: e.target.value})} style={{ fontSize: '16px' }} />
-            </div>
-            <div className="input-group" style={{ gridColumn: 'span 2' }}>
               <label>Course of Study</label>
               <select 
                 className="custom-select"
@@ -255,26 +255,30 @@ const Profile = () => {
             <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Physical Metrics</span>
           </div>
 
-          <div className="responsive-grid-2" style={{ gap: '1.25rem' }}>
-            <div className="input-group">
-              <label>Age</label>
-              <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} style={{ fontSize: '16px' }} />
-            </div>
-            <div className="input-group">
-              <label>Gender</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {['Male', 'Female'].map(g => (
-                  <button key={g} type="button" onClick={() => setFormData({...formData, gender: g})} className={`option-btn ${formData.gender === g ? 'selected' : ''}`} style={{ flex: 1, padding: '0.5rem' }}>{g}</button>
-                ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div className="input-group" style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '1rem', gridColumn: 'span 2' }}>
+              <div>
+                <label>Age</label>
+                <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} style={{ fontSize: '16px' }} />
+              </div>
+              <div>
+                <label>Gender</label>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  {['Male', 'Female'].map(g => (
+                    <button key={g} type="button" onClick={() => setFormData({...formData, gender: g})} className={`option-btn ${formData.gender === g ? 'selected' : ''}`} style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem' }}>{g}</button>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="input-group">
-              <label><Scale size={16}/> Weight (kg)</label>
-              <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} style={{ fontSize: '16px' }} />
-            </div>
-            <div className="input-group">
-              <label><Ruler size={16}/> Height (cm)</label>
-              <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} style={{ fontSize: '16px' }} />
+            <div className="input-group" style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.25rem' }}>
+              <div>
+                <label><Scale size={16}/> Weight (kg)</label>
+                <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} style={{ fontSize: '16px' }} />
+              </div>
+              <div>
+                <label><Ruler size={16}/> Height (cm)</label>
+                <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} style={{ fontSize: '16px' }} />
+              </div>
             </div>
             
             <div className="input-field" style={{ gridColumn: 'span 2' }}>
@@ -288,7 +292,7 @@ const Profile = () => {
 
             <div className="input-field" style={{ gridColumn: 'span 2', marginTop: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}><Trophy size={14}/> Active Goal</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.75rem' }}>
                 {[
                   { id: 'Lose Weight', icon: <Scale size={16} /> },
                   { id: 'Maintain', icon: <Activity size={16} /> },
