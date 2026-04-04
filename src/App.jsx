@@ -15,6 +15,7 @@ import Chat from './pages/Social/Chat';
 import CampusMap from './pages/Campus/Map';
 import ProfileSetup from './pages/Onboarding/ProfileSetup';
 import VerifyEmail from './pages/Auth/VerifyEmail';
+import ActivityReview from './pages/Dashboard/ActivityReview';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ const AppContent = () => {
         
         <Route path="/meals" element={user && user.emailVerified ? <MealLogger /> : <Navigate to="/login" />} />
         <Route path="/workouts" element={user && user.emailVerified ? <WorkoutTracker /> : <Navigate to="/login" />} />
+        <Route path="/activity-review" element={user && user.emailVerified ? <ActivityReview /> : <Navigate to="/login" />} />
         
         <Route path="/leaderboard" element={user && user.emailVerified ? <Leaderboard /> : <Navigate to="/login" />} />
         <Route path="/friends" element={user && user.emailVerified ? <Friends /> : <Navigate to="/login" />} />

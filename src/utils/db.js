@@ -27,9 +27,8 @@ const getTodayStr = () => new Date().toISOString().split('T')[0];
 /**
  * Initialize or fetch the daily log for a user.
  */
-export const getDailyLog = async (uid) => {
-  const today = getTodayStr();
-  const logId = `${uid}_${today}`;
+export const getDailyLog = async (uid, date = getTodayStr()) => {
+  const logId = `${uid}_${date}`;
   const logRef = doc(db, DAILY_LOG_COLLECTION, logId);
   const logSnap = await getDoc(logRef);
 
@@ -39,16 +38,105 @@ export const getDailyLog = async (uid) => {
     // Initial data for a new day
     const initialData = {
       uid,
-      date: today,
+      date,
       caloriesConsumed: 0,
       caloriesBurned: 0,
       steps: 0,
       water: 0,
       weight: 0, 
+      challengesDone: 0,
       lastUpdated: serverTimestamp()
     };
     await setDoc(logRef, initialData);
     return initialData;
+  }
+};
+
+/**
+ * Fetch and aggregate logs for the past 7 days (excluding today) from source collections.
+ */
+export const getWeeklyLogs = async (uid) => {
+  const dates = [];
+  const logs = [];
+  
+  // Calculate the last 7 dates (excluding today)
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+
+  // Define the time range for raw queries (Start of 7 days ago to end of yesterday)
+  const rangeStart = new Date();
+  rangeStart.setDate(rangeStart.getDate() - 7);
+  rangeStart.setHours(0, 0, 0, 0);
+
+  try {
+    // 1. Fetch Raw Meals
+    const mealsQuery = query(
+      collection(db, "users", uid, "meals"),
+      where("timestamp", ">=", rangeStart)
+    );
+    const mealsSnap = await getDocs(mealsQuery);
+    
+    // 2. Fetch Raw Workouts
+    const workoutsQuery = query(
+      collection(db, "users", uid, "workouts"),
+      where("timestamp", ">=", rangeStart)
+    );
+    const workoutsSnap = await getDocs(workoutsQuery);
+
+    // Initial log structure for each date
+    const dailyData = {};
+    dates.forEach(date => {
+      dailyData[date] = {
+        date,
+        caloriesConsumed: 0,
+        caloriesBurned: 0,
+        challengesDone: 0,
+        water: 0 // Water is still primarily in dairy_logs, we'll fetch summaries too
+      };
+    });
+
+    // 3. Aggregate Meals
+    mealsSnap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.timestamp) {
+        const dateStr = data.timestamp.toDate().toISOString().split('T')[0];
+        if (dailyData[dateStr]) {
+          dailyData[dateStr].caloriesConsumed += (data.calories || 0);
+        }
+      }
+    });
+
+    // 4. Aggregate Workouts
+    workoutsSnap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.timestamp) {
+        const dateStr = data.timestamp.toDate().toISOString().split('T')[0];
+        if (dailyData[dateStr]) {
+          dailyData[dateStr].caloriesBurned += (data.calories || 0);
+        }
+      }
+    });
+
+    // 5. Aggregate Challenges
+    // Instead of querying enrollment collection (which is global), we can check the daily_logs summaries 
+    // or keep the enrollment query if needed. For performance, we'll fetch daily_logs too.
+    await Promise.all(dates.map(async (date) => {
+      const summary = await getDailyLog(uid, date);
+      if (dailyData[date]) {
+        dailyData[date].water = summary.water || 0;
+        dailyData[date].challengesDone = summary.challengesDone || 0;
+      }
+    }));
+
+    // Return in reverse chronological order (Yesterday first)
+    return dates.map(date => dailyData[date]);
+  } catch (err) {
+    console.error("Aggregation error:", err);
+    // Fallback to basic summaries if aggregation fails
+    return Promise.all(dates.map(date => getDailyLog(uid, date)));
   }
 };
 
@@ -116,8 +204,7 @@ export const recordDailyLogin = async (uid) => {
   const today = getTodayStr();
   const userRef = doc(db, USER_COLLECTION, uid);
   await updateDoc(userRef, {
-    lastCheckedIn: today,
-    [`checkInHistory.${today}`]: true
+    lastCheckedIn: today
   });
 };
 
@@ -135,6 +222,12 @@ export const logUserMeal = async (uid, meal) => {
   const currentLog = await getDailyLog(uid);
   const newTotal = (currentLog.caloriesConsumed || 0) + (meal.calories || 0);
   await updateTodayMetric(uid, { caloriesConsumed: newTotal });
+
+  // Mark Activity for Consistency
+  const today = getTodayStr();
+  await updateDoc(doc(db, USER_COLLECTION, uid), {
+    [`checkInHistory.${today}`]: true
+  });
 
   // Award Points (+10)
   await addPoints(uid, 10);
@@ -154,6 +247,12 @@ export const logUserWorkout = async (uid, workout) => {
   const currentLog = await getDailyLog(uid);
   const newTotal = (currentLog.caloriesBurned || 0) + (workout.calories || 0);
   await updateTodayMetric(uid, { caloriesBurned: newTotal });
+
+  // Mark Activity for Consistency
+  const today = getTodayStr();
+  await updateDoc(doc(db, USER_COLLECTION, uid), {
+    [`checkInHistory.${today}`]: true
+  });
 
   // Award Points (+25)
   await addPoints(uid, 25);
@@ -239,6 +338,15 @@ export const enrollInChallenge = async (challengeId, uid) => {
       count: 1
     });
   }
+
+  // Update daily_log counter and checkInHistory
+  const currentLog = await getDailyLog(uid);
+  const newCount = (currentLog.challengesDone || 0) + 1;
+  await updateTodayMetric(uid, { challengesDone: newCount });
+  
+  await updateDoc(doc(db, USER_COLLECTION, uid), {
+    [`checkInHistory.${today}`]: true
+  });
 };
 
 export const getChallengeParticipants = async (challengeId) => {

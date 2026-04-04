@@ -190,21 +190,25 @@ const Dashboard = () => {
         </div>
       </motion.header>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="glass-card flex-between" 
-        style={{ padding: 'max(0.75rem, 1rem)', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Sparkles size={16} color="var(--accent-emerald)" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Consistency</span>
-        </div>
-        <div style={{ display: 'flex', gap: 'max(0.5rem, 0.875rem)', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          {getStreakDots()}
-        </div>
-      </motion.div>
+      <Link to="/activity-review" style={{ textDecoration: 'none', display: 'block' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -2, scale: 1.005, borderColor: 'var(--accent-emerald)' }}
+          transition={{ delay: 0.2 }}
+          className="glass-card flex-between" 
+          style={{ padding: 'max(0.75rem, 1rem)', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap', cursor: 'pointer' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Sparkles size={16} color="var(--accent-emerald)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Consistency</span>
+          </div>
+          <div style={{ display: 'flex', gap: 'max(0.5rem, 0.875rem)', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', alignItems: 'center' }}>
+            {getStreakDots()}
+            <ChevronRight size={14} color="var(--text-muted)" style={{ marginLeft: '4px' }} />
+          </div>
+        </motion.div>
+      </Link>
 
       <motion.section
         className="stats-grid"
