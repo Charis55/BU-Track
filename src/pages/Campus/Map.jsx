@@ -10,12 +10,12 @@ import 'leaflet/dist/leaflet.css';
 // These are the ONLY markers shown on the live Leaflet map.
 // ─────────────────────────────────────────────────────────────────────────────
 const MAP_MARKERS = [
-  { id: 1, name: 'Babcock University Stadium', type: 'sports', lat: 6.8949, lng: 3.7276, icon: '🏟️' },
+  { id: 1, name: 'Babcock University Stadium', type: 'sports', lat: 6.89472, lng: 3.72771, icon: '🏟️' },
   { id: 2, name: 'Babcock University Shopping Complex', type: 'food', lat: 6.8912, lng: 3.7205, icon: '🛍️' },
   { id: 3, name: 'Wema Bank (Babcock Branch)', type: 'amenity', lat: 6.8909, lng: 3.7208, icon: '🏦' },
-  { id: 4, name: 'Laz Otti Library', type: 'academic', lat: 6.8923, lng: 3.7225, icon: '📚' },
-  { id: 5, name: 'Babcock University Teaching Hospital', type: 'health', lat: 6.8911, lng: 3.7173, icon: '🏥' },
-  { id: 6, name: 'Babcock University Registry', type: 'admin', lat: 6.8893, lng: 3.7218, icon: '🏛️' },
+  { id: 2, name: 'Main Gate', type: 'social', lat: 6.88908, lng: 3.72004, icon: '🏛️' },
+  { id: 3, name: 'Teaching Hospital', type: 'social', lat: 6.8911, lng: 3.7173, icon: '🏥' },
+  { id: 5, name: 'Neal C. Wilson Hall', type: 'social', lat: 6.89305, lng: 3.72172, icon: '🏠' },
   { id: 7, name: 'School of Computing & Engineering', type: 'academic', lat: 6.8904, lng: 3.7232, icon: '💻' },
   { id: 8, name: 'Babcock University Main Campus', type: 'academic', lat: 6.8924, lng: 3.7183, icon: '🌐' },
   { id: 9, name: 'Babcock Basketball Court', type: 'sports', lat: 6.89396, lng: 3.72848, icon: '🏀' },

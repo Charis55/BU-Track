@@ -22,11 +22,16 @@ export function haversineDistance(lat1, lng1, lat2, lng2) {
 // Named campus venues (used for user-facing messages)
 // ─────────────────────────────────────────────────────────────────────────────
 export const VENUE_LOCATIONS = {
-  stadium:      { name: 'Babcock Stadium',           lat: 6.8949,  lng: 3.7276  },
-  guestHouse:   { name: 'Babcock Guest House',        lat: 6.89051, lng: 3.71992 },
+  stadium:      { name: 'Babcock Stadium',           lat: 6.89472, lng: 3.72771 },
+  mainGate:     { name: 'Main Gate',                 lat: 6.88908, lng: 3.72004 },
+  guestHouse:   { name: 'Babcock Guest House',        lat: 6.89055, lng: 3.71988 },
+  northHall:    { name: 'Neal C. Wilson (North)',     lat: 6.89305, lng: 3.72172 },
+  teachingHospital: { name: 'Teaching Hospital',      lat: 6.8911,  lng: 3.7173 },
+  shoppingComplex: { name: 'Shopping Complex',        lat: 6.8912,  lng: 3.7205 },
+  registry:     { name: 'University Registry',        lat: 6.8893,  lng: 3.7218 },
+  busaHouse:    { name: 'BUSA House',                 lat: 6.89205, lng: 3.72376 },
+  computingSchool: { name: 'School of Computing',     lat: 6.8904,  lng: 3.7232 },
   basketball:   { name: 'Basketball Court',           lat: 6.89396, lng: 3.72848 },
-  volleyball:   { name: 'Volleyball Court',           lat: 6.88963, lng: 3.72331 }, // 6°53'22.6"N 3°43'23.9"E
-  gym:          { name: 'Babcock Sports Complex',     lat: 6.8945,  lng: 3.7265  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,10 +78,10 @@ const LOCATION_RULES = {
   outdoor: {
     label: 'Route Start',
     radius: 200,
-    venues: [], // populated dynamically per-route
-    hint: 'You must select a route and be at its starting point to log this run.',
+    venues: [VENUE_LOCATIONS.guestHouse], // Fallback to Guest House if route data is missing
+    hint: 'You must select a campus route and be at its starting point (e.g. Guest House) to log this run.',
   },
-  // Yoga — no location requirement
+  // Yoga — no location requirement (can be done in rooms/dorms)
   anywhere: null,
 };
 
@@ -85,24 +90,39 @@ const LOCATION_RULES = {
  * Returns 'anywhere' if no location check is needed.
  */
 export function getRuleKey(categoryId, subId, workoutId) {
+  // ── DEFENSE IN DEPTH: Check workoutId first ──
+  // We specifically block these IDs from ever being bypassed via UI tab switching.
+  const sportsMap = { football: 'football', basketball: 'basketball', volleyball: 'volleyball' };
+  if (sportsMap[workoutId]) return sportsMap[workoutId];
+
+  const outdoorWorkouts = ['jog_light', 'run_pace', 'sprint_hiit', 'walk_brisk'];
+  if (outdoorWorkouts.includes(workoutId)) return 'outdoor';
+
+  const swimWorkouts = ['swim_freestyle', 'swim_laps'];
+  if (swimWorkouts.includes(workoutId)) return 'swimming';
+
+  // ── CATEGORY-BASED FALLBACKS ──
+  
+  // Yoga/Pilates category is allowed anywhere for dormitory flexibility
   if (categoryId === 'yoga') return 'anywhere';
 
+  // All weightlifting must be at a gym/stadium
   if (categoryId === 'weightlifting') return 'gym';
 
+  // Cardio checks
   if (categoryId === 'cardio') {
-    if (subId === 'c_equipment') return 'gym';
-    if (subId === 'c_pool')      return 'swimming';
     if (subId === 'c_outdoor')   return 'outdoor';
+    if (subId === 'c_pool')      return 'swimming';
+    return 'gym'; // Default gym check for c_equipment and others
   }
 
+  // Sports checks
   if (categoryId === 'sports') {
-    if (workoutId === 'football')   return 'football';
-    if (workoutId === 'basketball') return 'basketball';
-    if (workoutId === 'volleyball') return 'volleyball';
-    return 'gym'; // other sports (tennis etc.) → near a sports venue
+    return 'gym'; 
   }
 
-  return 'anywhere'; // default fallback
+  // Final fallback to gym for anything else to be safe (NEVER 'anywhere')
+  return 'gym';
 }
 
 /**
@@ -166,9 +186,13 @@ export async function verifyWorkoutLocation(categoryId, subId, workoutId, select
     }
   }
 
-  // No venues defined = cannot verify, allow with no_check
+  // ── STRICT SECURITY: If no venues defined but not 'anywhere', block the log ──
   if (!rule.venues || rule.venues.length === 0) {
-    return { status: 'no_check', distanceM: null, nearestVenue: null, hint: null };
+    if (ruleKey === 'anywhere') {
+      return { status: 'no_check', distanceM: null, nearestVenue: null, hint: null };
+    }
+    // Block any restricted workout that doesn't have venues (including misconfigured routes)
+    return { status: 'out_of_range', distanceM: null, nearestVenue: null, hint: 'Configuration error: No valid venues found for this workout. Please contact support.' };
   }
 
   // Request GPS

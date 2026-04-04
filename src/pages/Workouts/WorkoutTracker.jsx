@@ -208,8 +208,20 @@ const WorkoutTracker = () => {
 
     if (state?.sharedWorkout) {
       setTimeout(() => {
-        setSelectedWorkout(state.sharedWorkout);
-        if (state.sharedWorkout.sharedDuration) setDuration(state.sharedWorkout.sharedDuration);
+        const shared = state.sharedWorkout;
+        setSelectedWorkout(shared);
+        if (shared.sharedDuration) setDuration(shared.sharedDuration);
+        
+        // Synchronize UI category/sub to match the shared workout
+        for (const cat of WORKOUT_CATEGORIES) {
+          for (const sub of cat.subcategories) {
+            if (sub.workouts.some(w => w.id === shared.id)) {
+              setActiveCategory(cat);
+              setActiveSub(sub);
+              break;
+            }
+          }
+        }
         navigate(window.location.pathname, { replace: true, state: {} });
       }, 300);
     }
@@ -232,7 +244,23 @@ const WorkoutTracker = () => {
   const handleLog = async () => {
     if (!selectedWorkout || !user?.uid) return;
 
-    const ruleKey = getRuleKey(activeCategory.id, activeSub.id, selectedWorkout.id);
+    // ── STRICT IDENTITY CHECK ──
+    // We search the entire database to find the workout's TRUE home category.
+    // This prevents geofence bypasses if the user switches UI tabs before logging.
+    let trueCatId = 'unknown';
+    let trueSubId = 'unknown';
+
+    for (const cat of WORKOUT_CATEGORIES) {
+      for (const sub of cat.subcategories) {
+        if (sub.workouts.find(w => w.id === selectedWorkout.id)) {
+          trueCatId = cat.id;
+          trueSubId = sub.id;
+          break;
+        }
+      }
+    }
+
+    const ruleKey = getRuleKey(trueCatId, trueSubId, selectedWorkout.id);
 
     // Yoga / no-check workouts skip verification entirely
     if (ruleKey === 'anywhere') {
@@ -244,8 +272,8 @@ const WorkoutTracker = () => {
     setLocCheck({ status: 'checking', distanceM: null, nearestVenue: null, hint: null });
 
     const result = await verifyWorkoutLocation(
-      activeCategory.id,
-      activeSub.id,
+      trueCatId,
+      trueSubId,
       selectedWorkout.id,
       selectedRoute
     );
@@ -303,10 +331,18 @@ const WorkoutTracker = () => {
       : (selectedWorkout?.calPerMin ?? 0) * duration
   );
 
-  // Determine if the selected workout requires a location check
-  const needsLocationCheck = selectedWorkout
-    ? getRuleKey(activeCategory.id, activeSub.id, selectedWorkout.id) !== 'anywhere'
-    : false;
+  // Determine if the selected workout requires a location check by derivation
+  const needsLocationCheck = (() => {
+    if (!selectedWorkout) return false;
+    for (const cat of WORKOUT_CATEGORIES) {
+      for (const sub of cat.subcategories) {
+        if (sub.workouts.find(w => w.id === selectedWorkout.id)) {
+          return getRuleKey(cat.id, sub.id, selectedWorkout.id) !== 'anywhere';
+        }
+      }
+    }
+    return false;
+  })();
 
   return (
     <div className="workout-container container animate-fade-in">
@@ -319,102 +355,96 @@ const WorkoutTracker = () => {
       <div className="workout-grid">
         <section className="workout-selector">
           
-          <div className="glass-card main-selector p-0" style={{ padding: '1.5rem' }}>
-            <h3>Choose Activity</h3>
-            
-            {/* Primary Category Selection */}
-            <div className="category-scroll-container" style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.875rem' }}>
-              {WORKOUT_CATEGORIES.map(cat => (
-                <button 
-                  key={cat.id}
-                  onClick={() => handleCategorySelect(cat)}
-                  style={{
-                    padding: '0.75rem 1.25rem',
-                    borderRadius: '50px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    background: activeCategory.id === cat.id ? `${cat.color}20` : 'rgba(255,255,255,0.03)',
-                    color: activeCategory.id === cat.id ? cat.color : 'var(--text-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.625rem',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    transition: 'all 0.25s',
-                    flexShrink: 0
-                  }}
-                >
-                  <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span> {cat.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Sub-Category Selection */}
-            {activeCategory.subcategories.length > 0 && (
-              <div className="category-scroll-container" style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '1.5rem', overflowX: 'auto' }}>
-                {activeCategory.subcategories.map(sub => (
-                  <button
-                    key={sub.id}
-                    onClick={() => {
-                      setActiveSub(sub);
-                      setSelectedWorkout(null);
-                      setSelectedRoute(null);
-                    }}
+            <div className="glass-card main-selector p-0">
+              <h3>Choose Activity</h3>
+              
+              {/* Primary Category Selection */}
+              <div className="category-scroll-container">
+                {WORKOUT_CATEGORIES.map(cat => (
+                  <button 
+                    key={cat.id}
+                    onClick={() => handleCategorySelect(cat)}
                     style={{
-                      paddingBottom: '0.75rem',
-                      background: 'none',
-                      border: 'none',
-                      color: activeSub.id === sub.id ? activeCategory.color : 'var(--text-muted)',
-                      borderBottom: activeSub.id === sub.id ? `2px solid ${activeCategory.color}` : '2px solid transparent',
-                      fontWeight: 700,
-                      fontSize: '0.9rem',
+                      padding: '0.75rem 1.25rem',
+                      borderRadius: '50px',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      background: activeCategory.id === cat.id ? `${cat.color}20` : 'rgba(255,255,255,0.03)',
+                      color: activeCategory.id === cat.id ? cat.color : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.625rem',
                       whiteSpace: 'nowrap',
-                      transition: 'all 0.2s',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      transition: 'all 0.25s',
                       flexShrink: 0
                     }}
                   >
-                    {sub.name}
+                    <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span> {cat.name}
                   </button>
                 ))}
               </div>
-            )}
 
-            {/* Workouts Grid */}
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={activeSub.id}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-                className="type-grid"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                  gap: '1rem',
-                  marginTop: '1rem'
-                }}
-              >
-                {activeSub.workouts.map(workout => (
-                  <button 
-                    key={workout.id} 
-                    className={`type-btn ${selectedWorkout?.id === workout.id ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedWorkout(workout);
-                      setSelectedRoute(null); // reset route on new workout pick
-                    }}
-                    style={{
-                      background: selectedWorkout?.id === workout.id ? `${activeCategory.color}15` : 'rgba(255,255,255,0.04)',
-                      borderColor: selectedWorkout?.id === workout.id ? activeCategory.color : 'rgba(255,255,255,0.1)',
-                      color: selectedWorkout?.id === workout.id ? '#fff' : '#cbd5e1',
-                    }}
-                  >
-                    <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.5rem' }}>{workout.icon}</div>
-                    <span style={{ fontSize: '0.85rem', lineHeight: '1.3', width: '100%', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal' }}>{workout.name}</span>
-                  </button>
-                ))}
-              </motion.div>
-            </AnimatePresence>
+              {/* Sub-Category Selection */}
+              {activeCategory.subcategories.length > 0 && (
+                <div className="category-scroll-container" style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
+                  {activeCategory.subcategories.map(sub => (
+                    <button
+                      key={sub.id}
+                      onClick={() => {
+                        setActiveSub(sub);
+                        setSelectedWorkout(null);
+                        setSelectedRoute(null);
+                      }}
+                      style={{
+                        paddingBottom: '0.75rem',
+                        background: 'none',
+                        border: 'none',
+                        color: activeSub.id === sub.id ? activeCategory.color : 'var(--text-muted)',
+                        borderBottom: activeSub.id === sub.id ? `2px solid ${activeCategory.color}` : '2px solid transparent',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s',
+                        flexShrink: 0
+                      }}
+                    >
+                      {sub.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Workouts Grid */}
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={activeSub.id}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  className="type-grid"
+                >
+                  {activeSub.workouts.map(workout => (
+                    <button 
+                      key={workout.id} 
+                      className={`type-btn ${selectedWorkout?.id === workout.id ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedWorkout(workout);
+                        setSelectedRoute(null); // reset route on new workout pick
+                      }}
+                      style={{
+                        background: selectedWorkout?.id === workout.id ? `${activeCategory.color}15` : 'rgba(255,255,255,0.04)',
+                        borderColor: selectedWorkout?.id === workout.id ? activeCategory.color : 'rgba(255,255,255,0.1)',
+                        color: selectedWorkout?.id === workout.id ? '#fff' : '#cbd5e1',
+                      }}
+                    >
+                      <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.5rem' }}>{workout.icon}</div>
+                      <span style={{ fontSize: '0.85rem', lineHeight: '1.3', width: '100%', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal' }}>{workout.name}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
 
             {/* Logging Setup */}
             <AnimatePresence>
@@ -424,7 +454,7 @@ const WorkoutTracker = () => {
                   animate={{ height: 'auto', opacity: 1 }} 
                   exit={{ height: 0, opacity: 0 }}
                   className="setup-details" 
-                  style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)' }}
+                  style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px dashed rgba(255,255,255,0.1)' }}
                 >
                   <h4 style={{ color: '#f1f5f9', marginBottom: '1rem' }}>
                     Logging: {selectedWorkout.name}

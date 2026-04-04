@@ -27,22 +27,22 @@ export default function LocationCheckModal({
   const configs = {
     checking: {
       icon: <Loader size={40} className="loc-spin" style={{ color: '#10b981' }} />,
-      title: 'Verifying Location…',
-      body: 'Checking your GPS position against campus venues. Please wait.',
+      title: 'Verifying GPS…',
+      body: 'Locking coordinates against campus venues. Please wait.',
       color: '#10b981',
       showActions: false,
     },
     verified: {
       icon: <CheckCircle size={40} style={{ color: '#10b981' }} />,
-      title: 'Location Verified ✓',
-      body: `You're confirmed at ${nearestVenue}. Logging your workout now…`,
+      title: 'Confirmed On-Campus ✓',
+      body: `Verified! You're confirmed at ${nearestVenue}. Logging your workout…`,
       color: '#10b981',
       showActions: false,
     },
     out_of_range: {
       icon: <AlertTriangle size={40} style={{ color: '#f59e0b' }} />,
-      title: 'Outside Valid Area',
-      body: `Your current location does not match the valid venues for this workout. ${hint ?? ''}`,
+      title: 'Off-Campus Activity',
+      body: `Workout Log Blocked: You must be at the designated campus venue to log this activity. ${hint ?? ''}`,
       color: '#f59e0b',
       showActions: true,
       cancelLabel: 'Close',
@@ -54,9 +54,8 @@ export default function LocationCheckModal({
       body: 'BU-Track needs location access to verify your workout. Please enable it in your browser settings and try again.',
       color: '#ef4444',
       showActions: true,
-      cancelLabel: 'Cancel',
-      confirmLabel: 'Log Without Verification',
-      confirmStyle: { background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid #ef444450' },
+      cancelLabel: 'Close',
+      confirmLabel: null,
     },
     unavailable: {
       icon: <XCircle size={40} style={{ color: '#ef4444' }} />,
@@ -64,9 +63,8 @@ export default function LocationCheckModal({
       body: 'Could not retrieve your GPS position. Please make sure GPS is enabled on your device.',
       color: '#ef4444',
       showActions: true,
-      cancelLabel: 'Cancel',
-      confirmLabel: 'Log Without Verification',
-      confirmStyle: { background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid #ef444450' },
+      cancelLabel: 'Close',
+      confirmLabel: null,
     },
   };
 
