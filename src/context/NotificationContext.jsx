@@ -13,11 +13,11 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     const hydrateTimer = setInterval(() => {
       triggerNotification('Hydration Alert', 'Time to drink a glass of water!', 'hydrate');
-    }, 150000); // 2.5 mins for demonstration
+    }, 7200000); // 2 hours
 
     const motivationTimer = setInterval(() => {
       triggerNotification('Daily Nudge', 'Consistency builds champions. Log a workout!', 'motivate');
-    }, 400000); // 6.6 mins
+    }, 14400000); // 4 hours
 
     return () => {
       clearInterval(hydrateTimer);

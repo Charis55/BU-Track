@@ -234,6 +234,33 @@ export const logUserMeal = async (uid, meal) => {
 };
 
 /**
+ * Save custom food to user's personal database.
+ */
+export const saveCustomFood = async (uid, food) => {
+  const customRef = collection(db, "users", uid, "customFoods");
+  await addDoc(customRef, {
+    ...food,
+    category: 'Custom',
+    unit: 'serving',
+    timestamp: serverTimestamp()
+  });
+};
+
+/**
+ * Get all custom foods saved by the user.
+ */
+export const getCustomFoods = async (uid) => {
+  const foodsRef = collection(db, "users", uid, "customFoods");
+  const snap = await getDocs(foodsRef);
+  const foods = [];
+  snap.forEach(doc => {
+    // Generate a pseudo-ID or just use the doc ID
+    foods.push({ id: doc.id, ...doc.data() });
+  });
+  return foods;
+};
+
+/**
  * Log a workout and update the daily burned calories + Individual points.
  */
 export const logUserWorkout = async (uid, workout) => {

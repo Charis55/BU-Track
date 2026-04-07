@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Utensils, ChevronLeft, X, Edit3, Check, Flame, Beef, Wheat, Droplets } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getDailyLog, logUserMeal, calculateUserBiometrics } from '../../utils/db';
+import { getDailyLog, logUserMeal, calculateUserBiometrics, saveCustomFood, getCustomFoods } from '../../utils/db';
 import ShareModal from '../../components/ShareModal';
 
 const NIGERIAN_FOODS = [
@@ -72,13 +72,14 @@ const NIGERIAN_FOODS = [
   { id: 50, name: 'Tiger Nut Drink (Kunun Aya)', calories: 200, unit: 'glass', carbs: 30, protein: 4, fat: 8, category: 'Drinks' },
 ];
 
-const CATEGORIES = [...new Set(NIGERIAN_FOODS.map(f => f.category))];
+
 
 const MealLogger = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
   const [search, setSearch] = useState('');
+  const [customFoodsList, setCustomFoodsList] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [totalToday, setTotalToday] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
@@ -96,13 +97,16 @@ const MealLogger = () => {
   }, [user?.profile]);
 
   useEffect(() => {
-    const fetchDaily = async () => {
+    const fetchInitialData = async () => {
       if (user?.uid) {
         const log = await getDailyLog(user.uid);
         setTotalToday(log.caloriesConsumed || 0);
+
+        const custom = await getCustomFoods(user.uid);
+        setCustomFoodsList(custom);
       }
     };
-    fetchDaily();
+    fetchInitialData();
     
     // Auto-load shared meal if routed via Chat
     if (state?.sharedMeal) {
@@ -115,7 +119,10 @@ const MealLogger = () => {
     }
   }, [user?.uid, state, navigate]);
 
-  const filteredFoods = NIGERIAN_FOODS.filter(f => {
+  const allFoods = [...customFoodsList, ...NIGERIAN_FOODS];
+  const dynamicCategories = [...new Set(allFoods.map(f => f.category))];
+
+  const filteredFoods = allFoods.filter(f => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
     const matchesCat = activeCategory === 'All' || f.category === activeCategory;
     return matchesSearch && matchesCat;
@@ -159,6 +166,10 @@ const MealLogger = () => {
         calories: food.calories,
         macros: { carbs: food.carbs, protein: food.protein, fat: food.fat }
       });
+
+      await saveCustomFood(user.uid, food);
+      setCustomFoodsList(prev => [{ ...food, id: Date.now().toString(), category: 'Custom', unit: 'serving' }, ...prev]);
+
       setTotalToday(prev => prev + food.calories);
       setCustomFood({ name: '', calories: '', carbs: '', protein: '', fat: '' });
       setShowCustomForm(false);
@@ -212,8 +223,8 @@ const MealLogger = () => {
                 color: activeCategory === 'All' ? 'white' : 'var(--text-secondary)',
                 border: activeCategory === 'All' ? 'none' : '1px solid var(--border-subtle)',
               }}
-            >All ({NIGERIAN_FOODS.length})</button>
-            {CATEGORIES.map(cat => (
+            >All ({allFoods.length})</button>
+            {dynamicCategories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
