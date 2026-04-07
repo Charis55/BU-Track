@@ -99,7 +99,7 @@ function RoutePicker({ workout, onSelectRoute, selectedRoute, onClear, accentCol
                 </div>
 
                 {/* Stats strip */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: isActive ? '0.875rem' : '0' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: isActive ? '0.875rem' : '0' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                     <Route size={12} style={{ color: route.color }} /> {route.distance}
                   </span>
@@ -211,6 +211,7 @@ const WorkoutTracker = () => {
         const shared = state.sharedWorkout;
         setSelectedWorkout(shared);
         if (shared.sharedDuration) setDuration(shared.sharedDuration);
+        if (shared.sharedRoute) setSelectedRoute(shared.sharedRoute);
         
         // Synchronize UI category/sub to match the shared workout
         for (const cat of WORKOUT_CATEGORIES) {
@@ -359,35 +360,33 @@ const WorkoutTracker = () => {
               <h3>Choose Activity</h3>
               
               {/* Primary Category Selection */}
-              <div className="category-scroll-container">
+              <div className="category-scroll-container" style={{ marginBottom: '1.5rem' }}>
                 {WORKOUT_CATEGORIES.map(cat => (
                   <button 
                     key={cat.id}
                     onClick={() => handleCategorySelect(cat)}
                     style={{
-                      padding: '0.75rem 1.25rem',
                       borderRadius: '50px',
                       border: '1px solid rgba(255,255,255,0.1)',
                       background: activeCategory.id === cat.id ? `${cat.color}20` : 'rgba(255,255,255,0.03)',
                       color: activeCategory.id === cat.id ? cat.color : 'var(--text-secondary)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.625rem',
+                      gap: '0.4rem',
                       whiteSpace: 'nowrap',
                       fontWeight: 700,
-                      fontSize: '0.85rem',
                       transition: 'all 0.25s',
                       flexShrink: 0
                     }}
                   >
-                    <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span> {cat.name}
+                    <span className="cat-icon" style={{ fontSize: '1.2rem' }}>{cat.icon}</span> {cat.name}
                   </button>
                 ))}
               </div>
 
               {/* Sub-Category Selection */}
               {activeCategory.subcategories.length > 0 && (
-                <div className="category-scroll-container" style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '1.5rem' }}>
+                <div className="category-scroll-container" style={{ borderBottom: '1px solid var(--border-subtle)', marginBottom: '1.25rem', paddingBottom: '0.25rem' }}>
                   {activeCategory.subcategories.map(sub => (
                     <button
                       key={sub.id}
@@ -403,10 +402,11 @@ const WorkoutTracker = () => {
                         color: activeSub.id === sub.id ? activeCategory.color : 'var(--text-muted)',
                         borderBottom: activeSub.id === sub.id ? `2px solid ${activeCategory.color}` : '2px solid transparent',
                         fontWeight: 700,
-                        fontSize: '0.9rem',
+                        fontSize: '0.85rem',
                         whiteSpace: 'nowrap',
                         transition: 'all 0.2s',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        cursor: 'pointer'
                       }}
                     >
                       {sub.name}
@@ -439,8 +439,8 @@ const WorkoutTracker = () => {
                         color: selectedWorkout?.id === workout.id ? '#fff' : '#cbd5e1',
                       }}
                     >
-                      <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.5rem' }}>{workout.icon}</div>
-                      <span style={{ fontSize: '0.85rem', lineHeight: '1.3', width: '100%', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal' }}>{workout.name}</span>
+                      <div className="type-icon" style={{ fontSize: '24px', marginBottom: '0.4rem' }}>{workout.icon}</div>
+                      <span style={{ fontSize: '0.8rem', lineHeight: '1.3', width: '100%', textAlign: 'center', wordBreak: 'break-word', whiteSpace: 'normal', fontWeight: 600 }}>{workout.name}</span>
                     </button>
                   ))}
                 </motion.div>
@@ -537,7 +537,22 @@ const WorkoutTracker = () => {
               isOpen={shareModalOpen}
               onClose={() => setShareModalOpen(false)}
               type="workout"
-              payload={{ ...selectedWorkout, sharedDuration: duration }}
+              payload={{ 
+                ...selectedWorkout, 
+                sharedDuration: duration, 
+                sharedRoute: selectedRoute ? {
+                  id: selectedRoute.id,
+                  name: selectedRoute.name,
+                  difficulty: selectedRoute.difficulty,
+                  distance: selectedRoute.distance,
+                  time: selectedRoute.time,
+                  timeMin: selectedRoute.timeMin,
+                  calories: selectedRoute.calories,
+                  calPerMin: selectedRoute.calPerMin,
+                  color: selectedRoute.color,
+                  checkpoints: selectedRoute.checkpoints || []
+                } : null
+              }}
             />
           )}
         </section>

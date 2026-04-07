@@ -105,8 +105,17 @@ const Chat = () => {
                   >
                     <Activity size={18} color="#3b82f6" />
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{msg.payload.name}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>{msg.payload.duration} mins • {msg.payload.calories} kcal</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                        {msg.payload.name}
+                        {msg.payload.sharedRoute && (
+                          <span style={{ color: 'var(--accent-emerald)', fontSize: '0.7rem', marginLeft: '0.4rem', fontWeight: 700 }}>
+                            • {msg.payload.sharedRoute.name}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
+                        {msg.payload.sharedDuration || msg.payload.duration} mins • {msg.payload.calories} kcal
+                      </div>
                     </div>
                   </div>
                 )}

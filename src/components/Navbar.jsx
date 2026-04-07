@@ -11,7 +11,7 @@ import {
 
 const Navbar = () => {
   return (
-    <nav className="bottom-nav glass-card" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '0.5rem 0.25rem', gap: '2px' }}>
+    <nav className="bottom-nav glass-card">
       <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ flex: 1, minWidth: 0 }}>
         <Home size={20} />
         <span className="responsive-text-hide">Home</span>

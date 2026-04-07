@@ -16,6 +16,7 @@ import CampusMap from './pages/Campus/Map';
 import ProfileSetup from './pages/Onboarding/ProfileSetup';
 import VerifyEmail from './pages/Auth/VerifyEmail';
 import ActivityReview from './pages/Dashboard/ActivityReview';
+import LoginNotificationHandler from './components/LoginNotificationHandler';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -46,6 +47,7 @@ const AppContent = () => {
 
   return (
     <NotificationProvider>
+      <LoginNotificationHandler />
       <Routes>
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
         <Route path="/verify-email" element={user ? <VerifyEmail /> : <Navigate to="/login" />} />

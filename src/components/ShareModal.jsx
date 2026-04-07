@@ -32,7 +32,10 @@ const ShareModal = ({ isOpen, onClose, type, payload }) => {
     // Fallback text
     let textFallback = '';
     if (type === 'meal') textFallback = `I'm tracking ${payload.name} (${payload.calories} kcal)!`;
-    else if (type === 'workout') textFallback = `I just finished ${payload.name} for ${payload.duration} mins!`;
+    else if (type === 'workout') {
+      const routeText = payload.sharedRoute ? ` on ${payload.sharedRoute.name}` : '';
+      textFallback = `I'm planning ${payload.name}${routeText} for ${payload.sharedDuration} mins!`;
+    }
     else if (type === 'challenge') textFallback = `Check out this challenge: ${payload.title}!`;
     else textFallback = 'Shared an item with you.';
 

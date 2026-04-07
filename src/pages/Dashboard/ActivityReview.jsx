@@ -179,13 +179,13 @@ const ActivityReview = () => {
             <motion.div 
               key={log.date} 
               variants={itemVariants} 
-              className="glass-card" 
+              className="glass-card history-item" 
               whileHover={{ x: 5, borderColor: isActive ? 'var(--border-emerald)' : 'rgba(255,255,255,0.1)' }}
               style={{ padding: '1.25rem', cursor: 'default', border: isActive ? '1px solid rgba(16,185,129,0.3)' : '1px solid var(--border-subtle)' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div className="history-row-top">
                 {/* Date & Indicator */}
-                <div style={{ width: 80, flexShrink: 0 }}>
+                <div style={{ minWidth: 80 }}>
                   <span className="text-muted" style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
                     {date.toLocaleDateString('en-US', { weekday: 'short' })}
                   </span>
@@ -194,60 +194,55 @@ const ActivityReview = () => {
                   </span>
                 </div>
 
-                {/* Status Icons */}
-                <div style={{ display: 'flex', gap: '1rem', flex: 1, alignItems: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', minWidth: '40px' }}>
-                    {isActive ? <CheckCircle2 size={20} color="var(--accent-emerald)" /> : <XCircle size={20} color="var(--text-muted)" />}
-                    <span style={{ fontSize: '0.6rem', color: isActive ? 'var(--accent-emerald)' : 'var(--text-muted)', fontWeight: 800 }}>ACTIVE</span>
-                  </div>
-                  
-                  <div style={{ height: '30px', width: '1px', background: 'var(--border-subtle)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  {isActive ? <CheckCircle2 size={18} color="var(--accent-emerald)" /> : <XCircle size={18} color="var(--text-muted)" />}
+                  <span style={{ fontSize: '0.65rem', color: isActive ? 'var(--accent-emerald)' : 'var(--text-muted)', fontWeight: 800 }}>{isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+              </div>
 
-                  {/* Metrics Mini-Grid */}
-                  <div style={{ display: 'flex', gap: '2rem', flex: 1, flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <RadialRing value={log.caloriesConsumed || 0} max={biometrics.daily} color="var(--accent-emerald)" size={44} />
-                      <div>
-                        <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>INTAKE</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.caloriesConsumed || 0} <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>kcal</small></span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ background: 'rgba(245,158,11,0.1)', padding: '0.5rem', borderRadius: '50%', color: 'var(--accent-gold)' }}>
-                        <Zap size={16} />
-                      </div>
-                      <div>
-                        <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>BURNED</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.caloriesBurned || 0} <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>kcal</small></span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ background: 'rgba(168, 85, 247, 0.1)', padding: '0.5rem', borderRadius: '50%', color: '#a855f7' }}>
-                        <Flag size={16} />
-                      </div>
-                      <div>
-                        <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>CHALLENGES</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.challengesDone || 0}</span>
-                      </div>
-                    </div>
+              {/* Metrics Grid */}
+              <div className="history-metrics-grid" style={{ display: 'flex', gap: '2rem', flex: 1, alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <RadialRing value={log.caloriesConsumed || 0} max={biometrics.daily} color="var(--accent-emerald)" size={44} />
+                  <div>
+                    <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>INTAKE</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.caloriesConsumed || 0} <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>kcal</small></span>
                   </div>
                 </div>
 
-                {/* Status Indicator */}
-                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <div style={{ 
-                    display: 'flex', alignItems: 'center', gap: '0.4rem', 
-                    background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', 
-                    padding: '0.4rem 0.75rem', borderRadius: '2rem', 
-                    border: isActive ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(255,255,255,0.05)' 
-                  }}>
-                    {isActive ? <Sparkles size={14} color="var(--accent-gold)" /> : <Activity size={14} color="var(--text-muted)" />}
-                    <span style={{ color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.8rem' }}>
-                      {isActive ? 'Consistent' : 'Inactive'}
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ background: 'rgba(245,158,11,0.1)', padding: '0.5rem', borderRadius: '50%', color: 'var(--accent-gold)' }}>
+                    <Zap size={16} />
                   </div>
+                  <div>
+                    <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>BURNED</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.caloriesBurned || 0} <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>kcal</small></span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ background: 'rgba(168, 85, 247, 0.1)', padding: '0.5rem', borderRadius: '50%', color: '#a855f7' }}>
+                    <Flag size={16} />
+                  </div>
+                  <div>
+                    <span className="text-muted" style={{ fontSize: '0.65rem', display: 'block', fontWeight: 600 }}>CHALLENGES</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{log.challengesDone || 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Indicator Badge */}
+              <div className="history-status-badge">
+                <div style={{ 
+                  display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                  background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)', 
+                  padding: '0.4rem 0.75rem', borderRadius: '2rem', 
+                  border: isActive ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(255,255,255,0.05)' 
+                }}>
+                  {isActive ? <Sparkles size={14} color="var(--accent-gold)" /> : <Activity size={14} color="var(--text-muted)" />}
+                  <span style={{ color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.8rem' }}>
+                    {isActive ? 'Consistent' : 'Inactive'}
+                  </span>
                 </div>
               </div>
             </motion.div>

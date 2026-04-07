@@ -488,6 +488,7 @@ export const sendMessage = async (currentUid, friendUid, text, type = 'text', pa
   const chatId = getChatId(currentUid, friendUid);
   await addDoc(collection(db, `chats/${chatId}/messages`), {
     senderId: currentUid,
+    receiverId: friendUid,
     text: text.trim(),
     type,
     payload,
@@ -501,7 +502,7 @@ export const markMessagesAsRead = async (currentUid, friendUid) => {
   const chatId = getChatId(currentUid, friendUid);
   const q = query(
     collection(db, `chats/${chatId}/messages`),
-    where('senderId', '==', friendUid),
+    where('receiverId', '==', currentUid),
     where('read', '==', false)
   );
   const snap = await getDocs(q);
@@ -511,6 +512,61 @@ export const markMessagesAsRead = async (currentUid, friendUid) => {
       read: true
     });
   });
+};
+
+/**
+ * Subscribe to unread count for a specific friend.
+ */
+export const subscribeToUnreadCount = (currentUid, friendUid, callback) => {
+  if (!currentUid || !friendUid) return () => {};
+  const chatId = getChatId(currentUid, friendUid);
+  const q = query(
+    collection(db, `chats/${chatId}/messages`),
+    where('receiverId', '==', currentUid),
+    where('read', '==', false)
+  );
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.size);
+  });
+};
+
+/**
+ * Get count of pending friend requests for a user.
+ */
+export const getPendingFriendRequestsCount = async (currentUid) => {
+  if (!currentUid) return 0;
+  const q = query(
+    collection(db, `users/${currentUid}/friendRequests`),
+    where('status', '==', 'pending')
+  );
+  const snap = await getDocs(q);
+  return snap.size;
+};
+
+/**
+ * Get total unread message count across ALL chats.
+ * Refactored to avoid collectionGroup index dependency.
+ */
+export const getTotalUnreadMessagesCount = async (currentUid) => {
+  if (!currentUid) return 0;
+  
+  // Get all friends first
+  const friendsSnap = await getDocs(collection(db, `users/${currentUid}/friends`));
+  let totalUnread = 0;
+
+  for (const friendDoc of friendsSnap.docs) {
+    const friendUid = friendDoc.id;
+    const chatId = getChatId(currentUid, friendUid);
+    const q = query(
+      collection(db, `chats/${chatId}/messages`),
+      where('receiverId', '==', currentUid),
+      where('read', '==', false)
+    );
+    const msgSnap = await getDocs(q);
+    totalUnread += msgSnap.size;
+  }
+  
+  return totalUnread;
 };
 
 

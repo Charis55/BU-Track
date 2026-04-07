@@ -179,32 +179,30 @@ const MealLogger = () => {
         <div style={{ width: '40px' }} />
       </header>
 
-      <div className="meal-content-grid" style={{ marginTop: '1.5rem' }}>
+      <div className="meal-content-grid" style={{ marginTop: '1.25rem' }}>
         <section className="food-search-section">
           {/* Search and custom action bar */}
-          <div className="flex-between" style={{ gap: '0.875rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-            <div className="glass-card search-box" style={{ flex: 1, minWidth: '150px', margin: 0 }}>
-              <Search size={20} className="text-muted" />
+          <div className="meal-search-bar">
+            <div className="glass-card search-box" style={{ margin: 0 }}>
+              <Search size={18} className="text-muted" style={{ flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Find Nigerian favorites..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%', fontSize: '16px' }}
               />
             </div>
             <button
               onClick={() => setShowCustomForm(!showCustomForm)}
-              className="action-btn primary"
-              style={{ padding: '0.875rem 1.25rem', whiteSpace: 'nowrap', width: 'auto' }}
+              className="action-btn primary meal-custom-btn"
             >
               {showCustomForm ? <X size={18} /> : <Plus size={18} />}
-              <span className="responsive-text-sm">{showCustomForm ? 'Cancel' : 'Custom Entry'}</span>
+              <span>{showCustomForm ? 'Cancel' : 'Custom Entry'}</span>
             </button>
           </div>
 
           {/* Category chips */}
-          <div className="category-scroll-container" style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          <div className="category-scroll-container" style={{ marginBottom: '1.25rem' }}>
             <button
               onClick={() => setActiveCategory('All')}
               style={{
@@ -230,24 +228,7 @@ const MealLogger = () => {
             ))}
           </div>
 
-          {/* Custom food input toggle */}
-          <motion.button
-            whileHover={{ y: -2 }}
-            onClick={() => setShowCustomForm(!showCustomForm)}
-            style={{
-              width: '100%', padding: '0.875rem', marginBottom: '1rem',
-              background: showCustomForm ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${showCustomForm ? 'var(--border-gold)' : 'var(--border-subtle)'}`,
-              borderRadius: '0.875rem', cursor: 'pointer',
-              color: showCustomForm ? 'var(--accent-gold)' : 'var(--text-secondary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              fontWeight: 700, fontSize: '0.9rem', fontFamily: 'inherit',
-              minHeight: '48px',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Edit3 size={16} /> {showCustomForm ? 'Hide Custom Entry' : 'Add Custom Food'}
-          </motion.button>
+
 
           {/* Custom food form */}
           <AnimatePresence>
@@ -270,7 +251,7 @@ const MealLogger = () => {
                     onChange={e => setCustomFood({ ...customFood, name: e.target.value })}
                     style={{ padding: '0.75rem 1rem', fontSize: '0.9rem' }}
                   />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div className="responsive-grid-2" style={{ gap: '0.75rem' }}>
                     <input
                       type="number" placeholder="Calories (kcal)*"
                       value={customFood.calories}
@@ -340,18 +321,19 @@ const MealLogger = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: 'max(1rem, 1.25rem)',
+                    padding: '0.875rem 1rem',
                     marginBottom: '0.75rem',
                     cursor: 'pointer',
-                    borderRadius: '1.25rem',
+                    borderRadius: '1rem',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.05)',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    minHeight: '80px',
-                    gap: '1rem'
+                    minHeight: 'min-content',
+                    gap: '0.75rem',
+                    width: '100%'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                     <div style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       width: '45px', height: '45px', borderRadius: '12px',
@@ -394,9 +376,6 @@ const MealLogger = () => {
             <div className="total-display">
               <span className="total-val" style={{ color: pct >= 100 ? 'var(--accent-gold)' : 'white' }}>
                 {totalToday.toLocaleString()}
-                <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.3)', marginLeft: '0.4rem', fontWeight: 500 }}>
-                  / {calGoal.toLocaleString()}
-                </span>
               </span>
               <span className="total-label">/ {calGoal.toLocaleString()} kcal goal</span>
             </div>
@@ -501,7 +480,7 @@ const MealLogger = () => {
                 Per {selectedMeal.unit} • {selectedMeal.category}
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div className="drawer-actions">
                 <button
                   type="button"
                   onClick={() => setShareModalOpen(true)}
